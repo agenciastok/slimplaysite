@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #161616;
+  --color-ink: #161616;
+  --color-card: #161616;
+  --color-card-alt: #161616;
+  --color-accent: #e50914;
+  --color-accent-bright: #ff1e27;
+  --color-muted: #a1a1aa;
+  --color-soft: #e4e4e7;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: clip;
+  background-color: #161616;
+  color: #e4e4e7;
+}
+
+.site-bg {
+  background-color: #161616;
+  background-image:
+    linear-gradient(180deg, rgba(22, 22, 22, 0.82) 0%, rgba(22, 22, 22, 0.9) 48%, rgba(22, 22, 22, 0.94) 100%),
+    url("/brand/background.jpg");
+  background-position: center top;
+  background-size: cover;
+}
+
+@media (min-width: 768px) {
+  .site-bg {
+    background-attachment: fixed;
+  }
+}
+
+::selection {
+  background: #e50914;
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.notice-dialog:focus,
+.notice-dialog:focus-visible {
+  outline: none;
+}
+
+.notice-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
+}
+
+.notice-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.notice-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin-block: 10px;
+}
+
+.notice-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+
+.notice-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rise {
+  animation: rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .rise {
+    animation: none;
+  }
+}

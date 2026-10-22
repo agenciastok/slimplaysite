@@ -1,0 +1,1241 @@
+import type { FaqId, FeatureId, LinkId, PageId, PlatformId, ResourceId } from "@/lib/site";
+
+export type Locale = "pt-BR" | "en";
+
+export const locales: Array<{ id: Locale; label: string; short: string }> = [
+  { id: "pt-BR", label: "Português - Brasil", short: "PT-BR" },
+  { id: "en", label: "English", short: "EN" },
+];
+
+type PageCopy = {
+  kicker: string;
+  title: string;
+  lead: string;
+  points: string[];
+  action?: { href: string; label: string };
+};
+
+export type Dictionary = {
+  links: Record<LinkId, string>;
+  a11y: {
+    skip: string;
+    openMenu: string;
+    closeMenu: string;
+    language: string;
+    email: string;
+    telegram: string;
+    mainNav: string;
+  };
+  navCta: string;
+  hero: {
+    title: string;
+    subtitle: string;
+    primary: string;
+    secondary: string;
+  };
+  features: {
+    items: Array<{ id: FeatureId; title: string; text: string }>;
+  };
+  resources: {
+    badge: string;
+    title: string;
+    subtitle: string;
+    items: Array<{ id: ResourceId; title: string; text: string }>;
+  };
+  faq: {
+    badge: string;
+    title: string;
+    items: Array<{ id: FaqId; question: string; answer: string }>;
+  };
+  notice: {
+    title: string;
+    subtitle: string;
+    confirm: string;
+    close: string;
+    summary: string;
+    blocks: Array<{
+      id: "is" | "isNot" | "how";
+      title: string;
+      items: string[];
+    }>;
+  };
+  platforms: {
+    badge: string;
+    subtitle: string;
+    review: string;
+    use: string;
+    install: string;
+    items: Array<{
+      id: PlatformId;
+      name: string;
+      status: "review" | "use" | "install";
+    }>;
+  };
+  footer: {
+    linksTitle: string;
+    contactTitle: string;
+    legal: string;
+  };
+  supportLabel: string;
+  pages: Record<PageId, PageCopy>;
+  uploadForm: {
+    title: string;
+    subtitle: string;
+    disclaimer: string;
+    tabs: { code: string; url: string; file: string; xtream: string };
+    mac: string;
+    macPlaceholder: string;
+    device: string;
+    devicePlaceholder: string;
+    shortCode: string;
+    playlistName: string;
+    playlistNamePlaceholder: string;
+    m3uUrl: string;
+    epgUrl: string;
+    drop: string;
+    dropHint: string;
+    serverUrl: string;
+    username: string;
+    password: string;
+    protect: string;
+    setPin: string;
+    confirmPin: string;
+    captcha: string;
+    refreshCaptcha: string;
+    captchaPlaceholder: string;
+    submit: string;
+    saving: string;
+    successTitle: string;
+    successText: string;
+    close: string;
+    errors: Record<
+      | "mac"
+      | "device"
+      | "name"
+      | "url"
+      | "epg"
+      | "file"
+      | "server"
+      | "username"
+      | "password"
+      | "pin"
+      | "code"
+      | "captcha"
+      | "save"
+      | "config",
+      string
+    >;
+  };
+  activationCheckout: {
+    notice: string;
+    plan: string;
+    days: string;
+    priceLater: string;
+    pix: string;
+    card: string;
+    mac: string;
+    name: string;
+    email: string;
+    cpf: string;
+    pay: string;
+    paying: string;
+    waiting: string;
+    paid: string;
+    refunded: string;
+    pixCode: string;
+    copy: string;
+    copied: string;
+    errors: Record<
+      "mac" | "name" | "email" | "cpf" | "plan" | "captcha" | "save" | "unavailable" | "config",
+      string
+    >;
+  };
+  resellerPanel: {
+    loginTitle: string;
+    loginSubtitle: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+    passwordMismatch: string;
+    signupTitle: string;
+    signupSubtitle: string;
+    signupNote: string;
+    signup: string;
+    signingUp: string;
+    haveAccount: string;
+    needAccount: string;
+    enter: string;
+    entering: string;
+    welcome: string;
+    credits: string;
+    buy: string;
+    dashboard: string;
+    devices: string;
+    subs: string;
+    home: string;
+    logout: string;
+    total: string;
+    today: string;
+    month: string;
+    resellerCount: string;
+    spent: string;
+    searchDevices: string;
+    searchSubs: string;
+    search: string;
+    refresh: string;
+    activate: string;
+    add: string;
+    emptyDevices: string;
+    emptySubs: string;
+    renew: string;
+    mac: string;
+    comment: string;
+    commentPlaceholder: string;
+    activateNote: string;
+    confirmActivate: string;
+    activating: string;
+    activated: string;
+    buyTitle: string;
+    buyLead: string;
+    buyAction: string;
+    buyLater: string;
+    packCredits: string;
+    priceLabel: string;
+    close: string;
+    menu: string;
+    subTitle: string;
+    subLead: string;
+    phone: string;
+    transfer: string;
+    create: string;
+    creating: string;
+    created: string;
+    columns: {
+      id: string;
+      mac: string;
+      comment: string;
+      expires: string;
+      package: string;
+      actions: string;
+      name: string;
+      email: string;
+      phone: string;
+      credits: string;
+    };
+    errors: Record<
+      | "credentials"
+      | "captcha"
+      | "session"
+      | "credits"
+      | "mac"
+      | "device"
+      | "email"
+      | "name"
+      | "phone"
+      | "password"
+      | "save"
+      | "config",
+      string
+    >;
+  };
+  manage: {
+    loginTitle: string;
+    loginSubtitle: string;
+    mac: string;
+    deviceKey: string;
+    enter: string;
+    entering: string;
+    panelTitle: string;
+    panelSubtitle: string;
+    logout: string;
+    addTitle: string;
+    empty: string;
+    edit: string;
+    remove: string;
+    cancel: string;
+    confirmDelete: string;
+    save: string;
+    saving: string;
+    saved: string;
+    deleted: string;
+    keepPassword: string;
+    show: string;
+    hide: string;
+    fileNote: string;
+    types: { code: string; url: string; xtream: string; file: string; unknown: string };
+    errors: Record<
+      "credentials" | "captcha" | "session" | "name" | "url" | "epg" | "server" | "username" | "password" | "code" | "missing" | "save" | "config",
+      string
+    >;
+  };
+  notFound: {
+    title: string;
+    text: string;
+    action: string;
+  };
+};
+
+export const dictionaries: Record<Locale, Dictionary> = {
+  "pt-BR": {
+    links: {
+      home: "Home",
+      activation: "Ativação",
+      upload: "Upload de Lista",
+      reseller: "Revendedor",
+      terms: "Termos de Uso",
+      privacy: "Política de Privacidade",
+    },
+    a11y: {
+      skip: "Ir para o conteúdo",
+      openMenu: "Abrir menu",
+      closeMenu: "Fechar menu",
+      language: "Selecionar idioma",
+      email: "Enviar e-mail para o suporte",
+      telegram: "Abrir o Telegram do Slim Play",
+      mainNav: "Principal",
+    },
+    navCta: "Ativar agora",
+    hero: {
+      title: "A sua lista, em reprodução.",
+      subtitle:
+        "O Slim Play é apenas um reprodutor de mídia. Não fornecemos, hospedamos ou vendemos conteúdos nem playlists de canais.",
+      primary: "Ativar seu app",
+      secondary: "Upload de lista",
+    },
+    features: {
+      items: [
+        {
+          id: "interface",
+          title: "Interface Simples e Fluida",
+          text: "Navegue com facilidade, no controle remoto ou na tela do aparelho.",
+        },
+        {
+          id: "trial",
+          title: "Teste Gratuito de 7 Dias",
+          text: "Novos dispositivos entram em período gratuito automático por 7 dias.",
+        },
+        {
+          id: "support",
+          title: "Suporte Dedicado",
+          text: "Atendimento para tirar dúvidas e ajudar na configuração.",
+        },
+      ],
+    },
+    resources: {
+      badge: "• RECURSOS",
+      title: "Feito pra ser rápido de abrir e fácil de usar",
+      subtitle:
+        "Cada tela do SLIM PLAY foi pensada pra sumir do caminho — você entra, encontra o que quer assistir e pronto.",
+      items: [
+        {
+          id: "live",
+          title: "Live TV com guia de programação",
+          text: "Grade de canais com EPG completo, mostrando o que está passando agora e o que vem a seguir.",
+        },
+        {
+          id: "catalog",
+          title: "Catálogo de filmes e séries",
+          text: "Organização automática por categorias, lançamentos e recém-adicionados, com capas via TMDB.",
+        },
+        {
+          id: "playlist",
+          title: "Suporte a M3U e Xtream",
+          text: "Envie sua própria lista e vincule direto ao seu dispositivo, sem complicação.",
+        },
+        {
+          id: "activation",
+          title: "Ativação em segundos",
+          text: "Basta o MAC address do seu dispositivo — sem instalação complicada, sem espera.",
+        },
+        {
+          id: "devices",
+          title: "Multiplataforma",
+          text: "Funciona em Android: celular, tablet, TV Box e Android TV. É só baixar na Play Store.",
+        },
+        {
+          id: "smooth",
+          title: "Interface leve e fluida",
+          text: "Navegação pensada pro controle remoto, com carregamento rápido mesmo em listas grandes.",
+        },
+      ],
+    },
+    faq: {
+      badge: "• DÚVIDAS",
+      title: "Perguntas frequentes",
+      items: [
+        {
+          id: "content",
+          question: "O SLIM PLAY fornece canais, filmes ou listas de conteúdo?",
+          answer:
+            "Não. O SLIM PLAY é exclusivamente um reprodutor de mídia neutro. Não hospedamos, vendemos, fornecemos ou distribuímos nenhum tipo de conteúdo, canal ou lista. O usuário é 100% responsável por adicionar sua própria playlist.",
+        },
+        {
+          id: "login",
+          question: "Como eu entro no app?",
+          answer:
+            "Ao abrir o SLIM PLAY no seu dispositivo, será exibido o endereço MAC da sua TV ou aparelho. Basta acessar a aba \"Ativação\" ou \"Upload de Lista\" no nosso site, digitar o seu MAC e vincular a sua M3U ou credenciais Xtream.",
+        },
+        {
+          id: "devices",
+          question: "Em quais dispositivos o SLIM PLAY funciona?",
+          answer:
+            "O aplicativo é compatível com dispositivos Android (Smart TVs, TV Boxes, Fire TV Stick, Celulares e Tablets). Em breve também estará disponível para Smart TVs Samsung (Tizen) e LG (webOS).",
+        },
+        {
+          id: "playlist",
+          question: "Posso usar minha própria lista M3U ou Xtream?",
+          answer:
+            "Sim! O SLIM PLAY suporta tanto URLs M3U quanto dados de conexão via Xtream API (usuário, senha e URL do servidor).",
+        },
+        {
+          id: "reseller",
+          question: "O SLIM PLAY tem sistema de revenda?",
+          answer:
+            "Sim. Oferecemos um painel de parceiros/revendedores com sistema de créditos para gestão e ativação facilitada de dispositivos de terceiros.",
+        },
+      ],
+    },
+    notice: {
+      title: "Antes de começar",
+      subtitle: "Leia rápido — evita mal-entendido depois.",
+      confirm: "Entendi, continuar",
+      close: "Fechar aviso",
+      summary:
+        "Resumindo: o SLIM PLAY é como um aparelho de som. Ele toca a música — mas quem escolhe e fornece a música é você.",
+      blocks: [
+        {
+          id: "is",
+          title: "O que o SLIM PLAY é",
+          items: [
+            "**Um player.** Um aplicativo que reproduz a lista que **você já tem**.",
+            "Funciona em Android, TV Box, celular, computador e nas TVs LG, Roku e Samsung.",
+            "Organiza seus canais, filmes e séries, com capas, busca e continuar assistindo.",
+            "Você paga pelo **uso do aplicativo** — e só por isso.",
+          ],
+        },
+        {
+          id: "isNot",
+          title: "O que o SLIM PLAY NÃO é",
+          items: [
+            "**Não fornecemos lista de canais**, filmes, séries ou qualquer conteúdo.",
+            "**Não vendemos assinatura de servidor** nem acesso a programação.",
+            "Não temos vínculo com quem fornece a sua lista — não damos suporte a ela.",
+            "Se o conteúdo sair do ar, falar com **o seu fornecedor** resolve; nós não temos acesso.",
+          ],
+        },
+        {
+          id: "how",
+          title: "Como funciona na prática",
+          items: [
+            "Você já tem uma lista (M3U ou Xtream) com **o seu fornecedor**.",
+            "Instala o SLIM PLAY no seu aparelho.",
+            "Informa os dados da **sua** lista dentro do app.",
+            "Pronto: o conteúdo que aparece é o do seu fornecedor, organizado pelo SLIM PLAY.",
+          ],
+        },
+      ],
+    },
+    platforms: {
+      badge: "Disponível em",
+      subtitle: "Um app, várias plataformas — a mesma experiência em todas.",
+      review: "em análise",
+      use: "como usar",
+      install: "como instalar",
+      items: [
+        { id: "android", name: "Android (celular e TV)", status: "review" },
+        { id: "windows", name: "Windows (PC)", status: "review" },
+        { id: "xbox", name: "Xbox", status: "review" },
+        { id: "samsung", name: "Samsung (Tizen)", status: "review" },
+        { id: "whale", name: "WhaleOS (Whale TV)", status: "review" },
+        { id: "titan", name: "TitanOS", status: "review" },
+        { id: "lg", name: "LG (webOS)", status: "review" },
+        { id: "roku", name: "Roku", status: "review" },
+        { id: "ios", name: "iOS (iPhone / iPad)", status: "review" },
+        { id: "macos", name: "macOS (Mac)", status: "review" },
+        { id: "chromecast", name: "Chromecast", status: "use" },
+        { id: "firestick", name: "Firestick (Fire TV)", status: "install" },
+      ],
+    },
+    footer: {
+      linksTitle: "Links rápidos",
+      contactTitle: "Contato",
+      legal:
+        "Slim Play © 2026. Todos os direitos reservados. O aplicativo é apenas um player de mídia e não contém nenhum conteúdo multimídia pré-carregado.",
+    },
+    supportLabel: "Suporte",
+    pages: {
+      activation: {
+        kicker: "Ativação",
+        title: "Ative o seu app",
+        lead: "A ativação libera os recursos de reprodução no seu dispositivo. Você tem 7 dias para testar o player. Nenhum conteúdo ou playlist vem incluso.",
+        points: [
+          "O código libera o Slim Play, não um catálogo de canais ou arquivos.",
+          "O período gratuito dura 7 dias.",
+          "Depois do teste, a licença segue apenas o plano do aplicativo.",
+        ],
+        action: { href: "/upload", label: "Upload de lista" },
+      },
+      upload: {
+        kicker: "Upload de Lista",
+        title: "Envie a sua lista",
+        lead: "O Slim Play reproduz a lista que você adicionar. Não hospedamos, não vendemos e não fornecemos playlists de canais.",
+        points: [
+          "Use somente listas que você tem direito de reproduzir.",
+          "O player não traz mídia pré-carregada.",
+          "O gerenciamento da lista fica ligado à sua ativação.",
+        ],
+        action: { href: "/ativacao", label: "Ativar seu app" },
+      },
+      reseller: {
+        kicker: "Revendedor",
+        title: "Licença para revenda",
+        lead: "Esta área é para quem distribui a licença do Slim Play. A revenda é do aplicativo, nunca de conteúdos ou playlists.",
+        points: [
+          "Cada código ativa o player em um dispositivo.",
+          "O material comercial deve manter o aviso de player neutro.",
+          "Dúvidas de parceria seguem pelo e-mail de suporte.",
+        ],
+      },
+      terms: {
+        kicker: "Termos de Uso",
+        title: "Termos de Uso",
+        lead: "O Slim Play é um reprodutor de mídia. O site e o aplicativo não são um serviço de conteúdo.",
+        points: [
+          "Você é responsável pelas listas e arquivos que decidir reproduzir.",
+          "Não há mídia pré-carregada no aplicativo.",
+          "Os 7 dias de degustação cobrem os recursos de reprodução, não um catálogo.",
+          "A licença paga libera o player no dispositivo informado. Não inclui lista, canal ou arquivo.",
+          "A licença pode ser encerrada em caso de uso abusivo do aplicativo.",
+        ],
+      },
+      privacy: {
+        kicker: "Privacidade",
+        title: "Política de Privacidade",
+        lead: "Coletamos o mínimo necessário para responder você, lembrar o idioma deste navegador e ativar a licença do player.",
+        points: [
+          "A preferência de idioma fica salva apenas neste aparelho.",
+          "A ativação pede nome, e-mail, CPF e MAC para emitir a cobrança e ligar a licença ao aparelho. O cartão é digitado só no gateway. O Slim Play não guarda CPF nem dados de cartão.",
+          "O cadastro de revendedor guarda nome, e-mail e telefone para o painel de créditos. A senha fica apenas como hash.",
+          "Mensagens enviadas ao e-mail de suporte são usadas para responder o seu pedido.",
+          "Não vendemos dados pessoais.",
+        ],
+      },
+      chromecast: {
+        kicker: "Chromecast",
+        title: "Como usar no Chromecast",
+        lead: "O Slim Play reproduz a lista que você já tem. No Chromecast, o uso parte do aparelho em que o aplicativo está instalado.",
+        points: [
+          "A lista continua sendo a sua, em M3U ou Xtream.",
+          "O aplicativo não fornece canais, filmes nem acesso a servidor.",
+          "O suporte do Slim Play cobre o player, não o conteúdo do seu fornecedor.",
+        ],
+        action: { href: "/ativacao", label: "Ativar seu app" },
+      },
+      firestick: {
+        kicker: "Fire TV",
+        title: "Como instalar no Fire TV",
+        lead: "O Fire TV Stick roda Android e pode receber o Slim Play. A instalação libera o player, não uma lista de conteúdo.",
+        points: [
+          "Instale o Slim Play no Fire TV Stick.",
+          "Ative com o MAC do aparelho, na página de ativação.",
+          "Envie a sua própria lista. Nada vem pré-carregado.",
+        ],
+        action: { href: "/ativacao", label: "Ativar seu app" },
+      },
+    },
+    uploadForm: {
+      title: "Carregar playlist",
+      subtitle: "Escolha como deseja carregar sua lista de reprodução no aplicativo",
+      disclaimer:
+        "O Slim Play só reproduz a lista que você enviar. Não hospedamos, não vendemos e não fornecemos playlists.",
+      tabs: { code: "Código", url: "URL", file: "File", xtream: "Conta Xtream" },
+      mac: "Digite seu MAC Address",
+      macPlaceholder: "AA:BB:CC:DD:EE:FF",
+      device: "Digite seu MAC Address ou Código OTP de 6 dígitos gerado na TV.",
+      devicePlaceholder: "MAC ou OTP",
+      shortCode: "Código curto da lista.",
+      playlistName: "Nome da lista",
+      playlistNamePlaceholder: "Minha Lista",
+      m3uUrl: "URL da lista (URL M3U/M3U8)",
+      epgUrl: "URL do EPG da lista (Opcional)",
+      drop: "Arraste o arquivo .m3u ou .m3u8",
+      dropHint: "ou clique para escolher",
+      serverUrl: "Server URL / Host (DNS)",
+      username: "Usuário",
+      password: "Senha",
+      protect: "Protect Playlist",
+      setPin: "Set PIN",
+      confirmPin: "Confirm PIN",
+      captcha: "Confirme o resultado para continuar",
+      refreshCaptcha: "Gerar outro desafio",
+      captchaPlaceholder: "Resultado",
+      submit: "Carregar / Salvar lista",
+      saving: "Salvando...",
+      successTitle: "Lista vinculada com sucesso!",
+      successText: "Reinicie seu aplicativo.",
+      close: "Fechar",
+      errors: {
+        mac: "Digite um MAC Address válido. Exemplo: AA:BB:CC:DD:EE:FF.",
+        device: "Digite o MAC Address ou o código OTP de 6 dígitos gerado na TV.",
+        name: "Informe o nome da lista.",
+        url: "Informe uma URL M3U/M3U8 válida, começando com http:// ou https://.",
+        epg: "A URL do EPG precisa começar com http:// ou https://.",
+        file: "Envie um arquivo .m3u ou .m3u8 de até 400 KB.",
+        server: "Informe a URL do servidor (DNS), começando com http:// ou https://.",
+        username: "Informe o usuário.",
+        password: "Informe a senha.",
+        pin: "O PIN precisa ter de 4 a 8 números e coincidir com a confirmação.",
+        code: "Informe o código curto da lista.",
+        captcha: "O desafio de segurança não confere. Tente de novo.",
+        save: "Não foi possível salvar a lista. Tente novamente.",
+        config: "O envio está indisponível no momento.",
+      },
+    },
+    manage: {
+      loginTitle: "Entrar no dispositivo",
+      loginSubtitle: "Use o endereço MAC e a chave exibidos no aplicativo.",
+      mac: "Endereço MAC",
+      deviceKey: "Chave do dispositivo",
+      enter: "Entrar",
+      entering: "Entrando...",
+      panelTitle: "Upload de Lista",
+      panelSubtitle: "Listas vinculadas a este dispositivo",
+      logout: "Sair",
+      addTitle: "Adicionar lista",
+      empty: "Nenhuma lista vinculada a este dispositivo.",
+      edit: "Editar",
+      remove: "Excluir",
+      cancel: "Cancelar",
+      confirmDelete: "Excluir esta lista?",
+      save: "Salvar",
+      saving: "Salvando...",
+      saved: "Lista salva.",
+      deleted: "Lista excluída.",
+      keepPassword: "Deixe em branco para manter a senha atual",
+      show: "Mostrar",
+      hide: "Ocultar",
+      fileNote: "O envio de arquivo foi desativado. Você pode excluir esta lista.",
+      types: { code: "Código", url: "URL M3U", xtream: "Xtream Codes", file: "Arquivo", unknown: "Lista" },
+      errors: {
+        credentials: "MAC ou Chave do Dispositivo incorretos. Verifique as credenciais no seu aplicativo.",
+        captcha: "O desafio de segurança não confere. Tente de novo.",
+        session: "Sua sessão expirou. Entre de novo.",
+        name: "Informe o nome da lista.",
+        url: "Informe uma URL M3U/M3U8 válida, começando com http:// ou https://.",
+        epg: "A URL do EPG precisa começar com http:// ou https://.",
+        server: "Informe a URL do servidor, começando com http:// ou https://.",
+        username: "Informe o usuário.",
+        password: "Informe a senha.",
+        code: "Informe o código curto da lista.",
+        missing: "Lista não encontrada.",
+        save: "Não foi possível salvar. Tente novamente.",
+        config: "O painel está indisponível no momento.",
+      },
+    },
+    activationCheckout: {
+      notice:
+        "PIX e cartão de crédito ficam disponíveis quando o gateway e os valores dos planos estiverem configurados na hospedagem. A cobrança libera só o player.",
+      plan: "Plano",
+      days: "{days} dias",
+      priceLater: "Valor na publicação",
+      pix: "PIX",
+      card: "Cartão de crédito",
+      mac: "MAC do dispositivo",
+      name: "Nome completo",
+      email: "E-mail",
+      cpf: "CPF",
+      pay: "Continuar para o pagamento",
+      paying: "Gerando cobrança...",
+      waiting: "Aguardando a confirmação do pagamento. A licença entra depois que o pagamento compensar.",
+      paid: "Pagamento confirmado. O player foi ativado neste dispositivo.",
+      refunded: "Este pagamento foi estornado.",
+      pixCode: "Código PIX",
+      copy: "Copiar código PIX",
+      copied: "Código copiado",
+      errors: {
+        mac: "Informe o MAC do dispositivo no formato AA:BB:CC:DD:EE:FF.",
+        name: "Informe o nome completo.",
+        email: "Informe um e-mail válido.",
+        cpf: "Informe um CPF válido.",
+        plan: "Escolha um plano disponível.",
+        captcha: "O desafio de segurança não confere. Tente de novo.",
+        save: "Não foi possível gerar a cobrança. Tente novamente.",
+        unavailable: "O pagamento ainda não está disponível.",
+        config: "A ativação está indisponível no momento.",
+      },
+    },
+    resellerPanel: {
+      loginTitle: "Painel do revendedor",
+      loginSubtitle: "A revenda é da licença do player. Cada crédito ativa um MAC por 1 ano.",
+      email: "E-mail",
+      password: "Senha",
+      confirmPassword: "Confirmar senha",
+      passwordMismatch: "As senhas não conferem.",
+      signupTitle: "Cadastro de revendedor",
+      signupSubtitle: "Crie a conta para ativar dispositivos com créditos. Ela começa sem créditos.",
+      signupNote: "Cada crédito, quando a compra estiver disponível, ativa um MAC por 1 ano.",
+      signup: "Criar conta",
+      signingUp: "Criando conta...",
+      haveAccount: "Já tenho conta",
+      needAccount: "Criar conta de revendedor",
+      enter: "Entrar",
+      entering: "Entrando...",
+      welcome: "Bem-vindo ao seu painel",
+      credits: "Créditos",
+      buy: "Comprar Créditos",
+      dashboard: "Dashboard",
+      devices: "Dispositivos",
+      subs: "Lista de Revendas",
+      home: "Voltar ao início",
+      logout: "Desconectar",
+      total: "Ativações Totais",
+      today: "Ativações Hoje",
+      month: "Ativações Este Mês",
+      resellerCount: "Revendedores",
+      spent: "Créditos Gastos (Total)",
+      searchDevices: "Buscar por MAC ou comentário",
+      searchSubs: "Buscar por nome ou e-mail",
+      search: "Buscar",
+      refresh: "Atualizar",
+      activate: "Ativar dispositivo",
+      add: "Adicionar",
+      emptyDevices: "Nenhum dispositivo encontrado.",
+      emptySubs: "Nenhuma sub-revenda encontrada.",
+      renew: "Renovar",
+      mac: "MAC do dispositivo",
+      comment: "Comentário",
+      commentPlaceholder: "Opcional",
+      activateNote: "1 crédito libera o player neste MAC por 1 ano. Não inclui lista nem conteúdo.",
+      confirmActivate: "Ativar por 1 ano",
+      activating: "Ativando...",
+      activated: "Dispositivo ativado por 1 ano.",
+      buyTitle: "Comprar Créditos",
+      buyLead: "Escolha um pacote de créditos (ativações).",
+      buyAction: "Comprar",
+      buyLater: "A compra dos créditos entra quando o site estiver hospedado e o pagamento for conectado.",
+      packCredits: "{count} Créditos",
+      priceLabel: "VALOR EM REAL",
+      close: "Fechar",
+      menu: "Abrir menu",
+      subTitle: "Adicionar revenda",
+      subLead: "A sub-revenda entra com os créditos transferidos da sua conta.",
+      phone: "Telefone",
+      transfer: "Créditos para transferir",
+      create: "Adicionar",
+      creating: "Adicionando...",
+      created: "Sub-revenda adicionada.",
+      columns: {
+        id: "ID",
+        mac: "MAC",
+        comment: "Comentário",
+        expires: "Expira",
+        package: "Package",
+        actions: "Ações",
+        name: "Nome",
+        email: "E-mail",
+        phone: "Telefone",
+        credits: "Créditos",
+      },
+      errors: {
+        credentials: "E-mail ou senha incorretos.",
+        captcha: "O desafio de segurança não confere. Tente de novo.",
+        session: "Sua sessão expirou. Entre de novo.",
+        credits: "Créditos insuficientes.",
+        mac: "Informe o MAC no formato AA:BB:CC:DD:EE:FF.",
+        device: "Este MAC já está vinculado a outro revendedor.",
+        email: "Informe um e-mail válido que ainda não esteja em uso.",
+        name: "Informe o nome.",
+        phone: "Informe um telefone válido.",
+        password: "A senha precisa ter pelo menos 8 caracteres.",
+        save: "Não foi possível concluir. Tente novamente.",
+        config: "O painel está indisponível no momento.",
+      },
+    },
+    notFound: {
+      title: "Página não encontrada",
+      text: "Esse endereço não faz parte do site do Slim Play.",
+      action: "Voltar para a home",
+    },
+  },
+  en: {
+    links: {
+      home: "Home",
+      activation: "Activation",
+      upload: "List Upload",
+      reseller: "Reseller",
+      terms: "Terms of Use",
+      privacy: "Privacy Policy",
+    },
+    a11y: {
+      skip: "Skip to content",
+      openMenu: "Open menu",
+      closeMenu: "Close menu",
+      language: "Choose language",
+      email: "Email support",
+      telegram: "Open Slim Play on Telegram",
+      mainNav: "Primary",
+    },
+    navCta: "Activate now",
+    hero: {
+      title: "Your list, playing.",
+      subtitle:
+        "Slim Play is a neutral media player. We do not provide, host, or sell content or channel playlists.",
+      primary: "Activate your app",
+      secondary: "Upload list",
+    },
+    features: {
+      items: [
+        {
+          id: "interface",
+          title: "Simple, Smooth Interface",
+          text: "Move around easily, with the remote or on the device screen.",
+        },
+        {
+          id: "trial",
+          title: "7-Day Free Trial",
+          text: "New devices start an automatic 7-day trial.",
+        },
+        {
+          id: "support",
+          title: "Dedicated Support",
+          text: "Help with questions and with setup.",
+        },
+      ],
+    },
+    resources: {
+      badge: "• FEATURES",
+      title: "Built to open fast and stay easy to use",
+      subtitle:
+        "Every SLIM PLAY screen is meant to get out of the way — you open it, find what you want to watch, and that's it.",
+      items: [
+        {
+          id: "live",
+          title: "Live TV with a program guide",
+          text: "A channel grid with a full EPG, showing what's on now and what's coming next.",
+        },
+        {
+          id: "catalog",
+          title: "Movie and series catalog",
+          text: "Automatic organization by categories, new releases, and recently added, with artwork via TMDB.",
+        },
+        {
+          id: "playlist",
+          title: "M3U and Xtream support",
+          text: "Send your own list and link it straight to your device, without the hassle.",
+        },
+        {
+          id: "activation",
+          title: "Activation in seconds",
+          text: "All it takes is your device's MAC address — no complicated install, no waiting.",
+        },
+        {
+          id: "devices",
+          title: "Multiplatform",
+          text: "Works on Android: phone, tablet, TV Box, and Android TV. Just download it on the Play Store.",
+        },
+        {
+          id: "smooth",
+          title: "Light, smooth interface",
+          text: "Navigation built for the remote, with fast loading even on large lists.",
+        },
+      ],
+    },
+    faq: {
+      badge: "• FAQ",
+      title: "Frequently asked questions",
+      items: [
+        {
+          id: "content",
+          question: "Does SLIM PLAY provide channels, movies, or content lists?",
+          answer:
+            "No. SLIM PLAY is strictly a neutral media player. We do not host, sell, provide, or distribute any kind of content, channel, or list. The user is fully responsible for adding their own playlist.",
+        },
+        {
+          id: "login",
+          question: "How do I get into the app?",
+          answer:
+            "When you open SLIM PLAY on your device, it shows the MAC address of your TV or device. Open the Activation or List Upload page on our site, enter your MAC, and link your M3U or Xtream credentials.",
+        },
+        {
+          id: "devices",
+          question: "Which devices does SLIM PLAY work on?",
+          answer:
+            "The app is compatible with Android devices (Smart TVs, TV Boxes, Fire TV Stick, phones, and tablets). It will soon be available for Samsung (Tizen) and LG (webOS) Smart TVs as well.",
+        },
+        {
+          id: "playlist",
+          question: "Can I use my own M3U or Xtream list?",
+          answer:
+            "Yes. SLIM PLAY supports both M3U URLs and Xtream API connection details (username, password, and server URL).",
+        },
+        {
+          id: "reseller",
+          question: "Does SLIM PLAY have a reseller system?",
+          answer:
+            "Yes. We offer a partner and reseller panel with a credit system for managing and activating third-party devices.",
+        },
+      ],
+    },
+    notice: {
+      title: "Before you start",
+      subtitle: "A quick read — it avoids a misunderstanding later.",
+      confirm: "Got it, continue",
+      close: "Close notice",
+      summary:
+        "In short: SLIM PLAY is like a stereo. It plays the music — but you choose and supply the music.",
+      blocks: [
+        {
+          id: "is",
+          title: "What SLIM PLAY is",
+          items: [
+            "**A player.** An app that plays the list **you already have**.",
+            "It works on Android, TV Box, phone, computer, and on LG, Roku, and Samsung TVs.",
+            "It organizes your channels, movies, and series, with artwork, search, and continue watching.",
+            "You pay for **use of the app** — and only for that.",
+          ],
+        },
+        {
+          id: "isNot",
+          title: "What SLIM PLAY is not",
+          items: [
+            "**We do not provide a channel list**, movies, series, or any content.",
+            "**We do not sell a server subscription** or access to programming.",
+            "We have no tie to whoever supplies your list — we do not support it.",
+            "If the content goes offline, talking to **your provider** fixes it; we do not have access.",
+          ],
+        },
+        {
+          id: "how",
+          title: "How it works in practice",
+          items: [
+            "You already have a list (M3U or Xtream) with **your provider**.",
+            "You install SLIM PLAY on your device.",
+            "You enter **your** list details inside the app.",
+            "Done: the content shown is your provider's, organized by SLIM PLAY.",
+          ],
+        },
+      ],
+    },
+    platforms: {
+      badge: "Available on",
+      subtitle: "One app, several platforms — the same experience on all of them.",
+      review: "under review",
+      use: "how to use",
+      install: "how to install",
+      items: [
+        { id: "android", name: "Android (phone and TV)", status: "review" },
+        { id: "windows", name: "Windows (PC)", status: "review" },
+        { id: "xbox", name: "Xbox", status: "review" },
+        { id: "samsung", name: "Samsung (Tizen)", status: "review" },
+        { id: "whale", name: "WhaleOS (Whale TV)", status: "review" },
+        { id: "titan", name: "TitanOS", status: "review" },
+        { id: "lg", name: "LG (webOS)", status: "review" },
+        { id: "roku", name: "Roku", status: "review" },
+        { id: "ios", name: "iOS (iPhone / iPad)", status: "review" },
+        { id: "macos", name: "macOS (Mac)", status: "review" },
+        { id: "chromecast", name: "Chromecast", status: "use" },
+        { id: "firestick", name: "Firestick (Fire TV)", status: "install" },
+      ],
+    },
+    footer: {
+      linksTitle: "Quick links",
+      contactTitle: "Contact",
+      legal:
+        "Slim Play © 2026. All rights reserved. The app is only a media player and does not include any preloaded multimedia content.",
+    },
+    supportLabel: "Support",
+    pages: {
+      activation: {
+        kicker: "Activation",
+        title: "Activate your app",
+        lead: "Activation unlocks playback features on your device. You get 7 days to try the player. No content or playlist is included.",
+        points: [
+          "The code unlocks Slim Play, not a channel or file catalog.",
+          "The trial lasts 7 days on the activated device.",
+          "After the trial, the license covers the app plan only.",
+        ],
+        action: { href: "/upload", label: "Upload list" },
+      },
+      upload: {
+        kicker: "List Upload",
+        title: "Upload your list",
+        lead: "Slim Play plays the list you add. We do not host, sell, or provide channel playlists.",
+        points: [
+          "Upload only lists you have the right to play.",
+          "The player does not ship with preloaded media.",
+          "List management is tied to your activation.",
+        ],
+        action: { href: "/ativacao", label: "Activate your app" },
+      },
+      reseller: {
+        kicker: "Reseller",
+        title: "License resale",
+        lead: "This area is for people who distribute the Slim Play license. Resale covers the app, never content or playlists.",
+        points: [
+          "Each code activates the player on one device.",
+          "Sales material must keep the neutral-player notice.",
+          "Partnership questions go to the support email.",
+        ],
+      },
+      terms: {
+        kicker: "Terms of Use",
+        title: "Terms of Use",
+        lead: "Slim Play is a media player. The site and the app are not a content service.",
+        points: [
+          "You are responsible for the lists and files you choose to play.",
+          "The app includes no preloaded media.",
+          "The 7-day trial covers playback features, not a catalog.",
+          "A paid license unlocks the player on the device you enter. It does not include a list, channel, or file.",
+          "The license may end in cases of abusive use of the app.",
+        ],
+      },
+      privacy: {
+        kicker: "Privacy",
+        title: "Privacy Policy",
+        lead: "We keep only what we need to reply to you, remember the language in this browser, and activate the player license.",
+        points: [
+          "The language preference is stored only on this device.",
+          "Activation asks for name, email, CPF, and MAC to issue the charge and tie the license to the device. The card is entered only at the gateway. Slim Play does not store the CPF or card data.",
+          "Reseller signup stores the name, email, and phone for the credit panel. The password is kept only as a hash.",
+          "Messages sent to support are used to answer your request.",
+          "We do not sell personal data.",
+        ],
+      },
+      chromecast: {
+        kicker: "Chromecast",
+        title: "How to use it on Chromecast",
+        lead: "Slim Play plays the list you already have. On Chromecast, use starts from the device where the app is installed.",
+        points: [
+          "The list is still yours, as M3U or Xtream.",
+          "The app does not provide channels, movies, or server access.",
+          "Slim Play support covers the player, not your provider's content.",
+        ],
+        action: { href: "/ativacao", label: "Activate your app" },
+      },
+      firestick: {
+        kicker: "Fire TV",
+        title: "How to install on Fire TV",
+        lead: "Fire TV Stick runs Android and can run Slim Play. Installation unlocks the player, not a content list.",
+        points: [
+          "Install Slim Play on the Fire TV Stick.",
+          "Activate it with the device MAC, on the activation page.",
+          "Upload your own list. Nothing is preloaded.",
+        ],
+        action: { href: "/ativacao", label: "Activate your app" },
+      },
+    },
+    uploadForm: {
+      title: "Load playlist",
+      subtitle: "Choose how you want to load your playlist in the app",
+      disclaimer:
+        "Slim Play only plays the list you upload. We do not host, sell, or provide playlists.",
+      tabs: { code: "Code", url: "URL", file: "File", xtream: "Xtream account" },
+      mac: "Enter your MAC Address",
+      macPlaceholder: "AA:BB:CC:DD:EE:FF",
+      device: "Enter your MAC Address or the 6-digit OTP shown on the TV.",
+      devicePlaceholder: "MAC or OTP",
+      shortCode: "Short playlist code.",
+      playlistName: "Playlist name",
+      playlistNamePlaceholder: "My List",
+      m3uUrl: "Playlist URL (M3U/M3U8)",
+      epgUrl: "Playlist EPG URL (Optional)",
+      drop: "Drop a .m3u or .m3u8 file",
+      dropHint: "or click to choose",
+      serverUrl: "Server URL / Host (DNS)",
+      username: "Username",
+      password: "Password",
+      protect: "Protect Playlist",
+      setPin: "Set PIN",
+      confirmPin: "Confirm PIN",
+      captcha: "Confirm the result to continue",
+      refreshCaptcha: "New challenge",
+      captchaPlaceholder: "Result",
+      submit: "Load / Save list",
+      saving: "Saving...",
+      successTitle: "List linked successfully!",
+      successText: "Restart your app.",
+      close: "Close",
+      errors: {
+        mac: "Enter a valid MAC Address. Example: AA:BB:CC:DD:EE:FF.",
+        device: "Enter the MAC Address or the 6-digit OTP shown on the TV.",
+        name: "Enter the playlist name.",
+        url: "Enter a valid M3U/M3U8 URL starting with http:// or https://.",
+        epg: "The EPG URL must start with http:// or https://.",
+        file: "Upload a .m3u or .m3u8 file up to 400 KB.",
+        server: "Enter the server URL (DNS), starting with http:// or https://.",
+        username: "Enter the username.",
+        password: "Enter the password.",
+        pin: "The PIN must be 4 to 8 digits and match the confirmation.",
+        code: "Enter the short playlist code.",
+        captcha: "The security challenge does not match. Try again.",
+        save: "The list could not be saved. Try again.",
+        config: "Upload is unavailable right now.",
+      },
+    },
+    manage: {
+      loginTitle: "Sign in to the device",
+      loginSubtitle: "Use the MAC address and the key shown in the app.",
+      mac: "MAC address",
+      deviceKey: "Device key",
+      enter: "Sign in",
+      entering: "Signing in...",
+      panelTitle: "List Upload",
+      panelSubtitle: "Lists linked to this device",
+      logout: "Sign out",
+      addTitle: "Add list",
+      empty: "No lists linked to this device.",
+      edit: "Edit",
+      remove: "Delete",
+      cancel: "Cancel",
+      confirmDelete: "Delete this list?",
+      save: "Save",
+      saving: "Saving...",
+      saved: "List saved.",
+      deleted: "List deleted.",
+      keepPassword: "Leave blank to keep the current password",
+      show: "Show",
+      hide: "Hide",
+      fileNote: "File upload is disabled. You can delete this list.",
+      types: { code: "Code", url: "M3U URL", xtream: "Xtream Codes", file: "File", unknown: "List" },
+      errors: {
+        credentials: "Incorrect MAC or device key. Check the credentials in your app.",
+        captcha: "The security challenge does not match. Try again.",
+        session: "Your session expired. Sign in again.",
+        name: "Enter the list name.",
+        url: "Enter a valid M3U/M3U8 URL starting with http:// or https://.",
+        epg: "The EPG URL must start with http:// or https://.",
+        server: "Enter the server URL, starting with http:// or https://.",
+        username: "Enter the username.",
+        password: "Enter the password.",
+        code: "Enter the short list code.",
+        missing: "List not found.",
+        save: "Could not save. Try again.",
+        config: "The panel is unavailable right now.",
+      },
+    },
+    activationCheckout: {
+      notice:
+        "PIX and credit card become available once the gateway and plan prices are configured at hosting. The charge unlocks the player only.",
+      plan: "Plan",
+      days: "{days} days",
+      priceLater: "Price at launch",
+      pix: "PIX",
+      card: "Credit card",
+      mac: "Device MAC",
+      name: "Full name",
+      email: "Email",
+      cpf: "CPF",
+      pay: "Continue to payment",
+      paying: "Creating the charge...",
+      waiting: "Waiting for payment confirmation. The license starts after the payment clears.",
+      paid: "Payment confirmed. The player is activated on this device.",
+      refunded: "This payment was refunded.",
+      pixCode: "PIX code",
+      copy: "Copy PIX code",
+      copied: "Code copied",
+      errors: {
+        mac: "Enter the device MAC as AA:BB:CC:DD:EE:FF.",
+        name: "Enter the full name.",
+        email: "Enter a valid email.",
+        cpf: "Enter a valid CPF.",
+        plan: "Choose an available plan.",
+        captcha: "The security challenge does not match. Try again.",
+        save: "The charge could not be created. Try again.",
+        unavailable: "Payment is not available yet.",
+        config: "Activation is unavailable right now.",
+      },
+    },
+    resellerPanel: {
+      loginTitle: "Reseller panel",
+      loginSubtitle: "Resale covers the player license. Each credit activates one MAC for 1 year.",
+      email: "Email",
+      password: "Password",
+      confirmPassword: "Confirm password",
+      passwordMismatch: "The passwords do not match.",
+      signupTitle: "Reseller signup",
+      signupSubtitle: "Create an account to activate devices with credits. It starts with no credits.",
+      signupNote: "Each credit, once purchases are available, activates one MAC for 1 year.",
+      signup: "Create account",
+      signingUp: "Creating account...",
+      haveAccount: "I already have an account",
+      needAccount: "Create a reseller account",
+      enter: "Sign in",
+      entering: "Signing in...",
+      welcome: "Welcome to your panel",
+      credits: "Credits",
+      buy: "Buy credits",
+      dashboard: "Dashboard",
+      devices: "Devices",
+      subs: "Reseller list",
+      home: "Back to home",
+      logout: "Sign out",
+      total: "Total activations",
+      today: "Activations today",
+      month: "Activations this month",
+      resellerCount: "Resellers",
+      spent: "Credits spent (total)",
+      searchDevices: "Search by MAC or comment",
+      searchSubs: "Search by name or email",
+      search: "Search",
+      refresh: "Refresh",
+      activate: "Activate device",
+      add: "Add",
+      emptyDevices: "No devices found.",
+      emptySubs: "No sub-reseller found.",
+      renew: "Renew",
+      mac: "Device MAC",
+      comment: "Comment",
+      commentPlaceholder: "Optional",
+      activateNote: "1 credit unlocks the player on this MAC for 1 year. No list or content is included.",
+      confirmActivate: "Activate for 1 year",
+      activating: "Activating...",
+      activated: "Device activated for 1 year.",
+      buyTitle: "Buy credits",
+      buyLead: "Choose a credit pack (activations).",
+      buyAction: "Buy",
+      buyLater: "Credit purchases open once the site is hosted and payment is connected.",
+      packCredits: "{count} credits",
+      priceLabel: "PRICE IN BRL",
+      close: "Close",
+      menu: "Open menu",
+      subTitle: "Add reseller",
+      subLead: "The sub-reseller starts with credits transferred from your account.",
+      phone: "Phone",
+      transfer: "Credits to transfer",
+      create: "Add",
+      creating: "Adding...",
+      created: "Sub-reseller added.",
+      columns: {
+        id: "ID",
+        mac: "MAC",
+        comment: "Comment",
+        expires: "Expires",
+        package: "Package",
+        actions: "Actions",
+        name: "Name",
+        email: "Email",
+        phone: "Phone",
+        credits: "Credits",
+      },
+      errors: {
+        credentials: "Incorrect email or password.",
+        captcha: "The security challenge does not match. Try again.",
+        session: "Your session expired. Sign in again.",
+        credits: "Not enough credits.",
+        mac: "Enter the MAC as AA:BB:CC:DD:EE:FF.",
+        device: "This MAC is already linked to another reseller.",
+        email: "Enter a valid email that is not already in use.",
+        name: "Enter the name.",
+        phone: "Enter a valid phone number.",
+        password: "The password must be at least 8 characters.",
+        save: "Could not finish. Try again.",
+        config: "The panel is unavailable right now.",
+      },
+    },
+    notFound: {
+      title: "Page not found",
+      text: "This address is not part of the Slim Play site.",
+      action: "Back to home",
+    },
+  },
+};
