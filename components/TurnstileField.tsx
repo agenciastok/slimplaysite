@@ -21,16 +21,18 @@ function loadTurnstile() {
   if (window.turnstile) return Promise.resolve();
   if (!loader) {
     loader = new Promise((resolve, reject) => {
+      const finish = () => (window.turnstile ? resolve() : reject(new Error("turnstile")));
       const existing = document.querySelector<HTMLScriptElement>(`script[src="${SCRIPT}"]`);
-      const script = existing ?? document.createElement("script");
-      script.async = true;
-      script.defer = true;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error("turnstile"));
-      if (!existing) {
-        script.src = SCRIPT;
-        document.head.appendChild(script);
+      if (existing) {
+        existing.addEventListener("load", finish, { once: true });
+        existing.addEventListener("error", () => reject(new Error("turnstile")), { once: true });
+        return;
       }
+      const script = document.createElement("script");
+      script.src = SCRIPT;
+      script.onload = () => finish();
+      script.onerror = () => reject(new Error("turnstile"));
+      document.head.appendChild(script);
     });
   }
   return loader;
@@ -57,16 +59,13 @@ export function TurnstileField({
     void loadTurnstile()
       .then(() => {
         if (cancelled || !host.current || !window.turnstile || widgetId.current) return;
-        window.turnstile.ready(() => {
-          if (cancelled || !host.current || !window.turnstile || widgetId.current) return;
-          widgetId.current = window.turnstile.render(host.current, {
-            sitekey,
-            action,
-            theme: "dark",
-            callback: (token: string) => onTokenRef.current(token),
-            "expired-callback": () => onTokenRef.current(""),
-            "error-callback": () => onTokenRef.current(""),
-          });
+        widgetId.current = window.turnstile.render(host.current, {
+          sitekey,
+          action,
+          theme: "dark",
+          callback: (token: string) => onTokenRef.current(token),
+          "expired-callback": () => onTokenRef.current(""),
+          "error-callback": () => onTokenRef.current(""),
         });
       })
       .catch(() => onTokenRef.current(""));
