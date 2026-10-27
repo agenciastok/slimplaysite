@@ -3,7 +3,9 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
+import { MacInput } from "@/components/MacInput";
 import { useI18n } from "@/lib/i18n";
+import { maskMac } from "@/lib/mac";
 import { creditPacks, type ResellerAccount, type ResellerDashboard, type ResellerDevice, type ResellerError } from "@/lib/reseller";
 
 type View = "dashboard" | "devices" | "subs";
@@ -277,7 +279,7 @@ export function ResellerPanel({ initial }: { initial: ResellerDashboard }) {
                   <td className="px-4 py-3">{when(device.expiresAt)}</td>
                   <td className="px-4 py-3">{device.packageLabel}</td>
                   <td className="px-4 py-3">
-                    <button type="button" className="text-accent-bright hover:text-white" onClick={() => { setMac(device.mac); setComment(device.comment); setActivateOpen(true); }}>
+                    <button type="button" className="text-accent-bright hover:text-white" onClick={() => { setMac(maskMac(device.mac)); setComment(device.comment); setActivateOpen(true); }}>
                       {copy.renew}
                     </button>
                   </td>
@@ -358,7 +360,7 @@ export function ResellerPanel({ initial }: { initial: ResellerDashboard }) {
           <form onSubmit={onActivate} className="space-y-4">
             <label className="block">
               <span className="mb-2 block text-sm text-soft">{copy.mac}</span>
-              <input value={mac} onChange={(event) => setMac(event.target.value)} placeholder="AA:BB:CC:DD:EE:FF" className={inputClass} required />
+              <MacInput value={mac} onChange={setMac} placeholder="AA:BB:CC:DD:EE:FF" autoComplete="off" className={inputClass} required />
             </label>
             <label className="block">
               <span className="mb-2 block text-sm text-soft">{copy.comment}</span>

@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { MacInput } from "@/components/MacInput";
 import { TurnstileField } from "@/components/TurnstileField";
 import { useI18n } from "@/lib/i18n";
 import type { ManageError } from "@/lib/managed-list";
@@ -60,12 +61,11 @@ export function DeviceLogin() {
           <div className="space-y-4">
             <label className="block">
               <span className="mb-2 block text-sm text-soft">{copy.mac}</span>
-              <input
+              <MacInput
                 value={mac}
-                onChange={(event) => setMac(event.target.value)}
+                onChange={setMac}
                 placeholder="AA:BB:CC:DD:EE:FF"
                 autoComplete="off"
-                spellCheck={false}
                 className={inputClass}
                 required
               />

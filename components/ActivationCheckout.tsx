@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { Logo } from "@/components/Logo";
+import { MacInput } from "@/components/MacInput";
 import { TurnstileField } from "@/components/TurnstileField";
 import { useI18n } from "@/lib/i18n";
 import { previewPlans, type ActivationCharge, type ActivationError, type ActivationPayment, type ActivationPlan } from "@/lib/activation";
@@ -213,12 +214,11 @@ export function ActivationCheckout() {
             <p className="mt-4 text-3xl font-semibold text-white">{money(price, locale)}</p>
             <label className="mt-6 block">
               <span className="mb-2 block text-sm text-soft">{copy.mac}</span>
-              <input
+              <MacInput
                 value={mac}
-                onChange={(event) => setMac(event.target.value)}
+                onChange={setMac}
                 placeholder="AA:BB:CC:DD:EE:FF"
                 autoComplete="off"
-                spellCheck={false}
                 disabled={!ready}
                 className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-muted focus:border-white/40 disabled:cursor-not-allowed disabled:opacity-60"
                 required

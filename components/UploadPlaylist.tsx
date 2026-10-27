@@ -1,8 +1,10 @@
 "use client";
 
 import { useId, useState, type FormEvent } from "react";
+import { MacInput } from "@/components/MacInput";
 import { TurnstileField } from "@/components/TurnstileField";
 import { useI18n } from "@/lib/i18n";
+import { maskMac, maskMacOrOtp } from "@/lib/mac";
 
 type Tab = "code" | "url" | "xtream";
 type UploadError = keyof ReturnType<typeof useI18n>["t"]["uploadForm"]["errors"];
@@ -109,6 +111,7 @@ export function UploadPlaylist() {
                   aria-selected={active}
                   onClick={() => {
                     setTab(item.id);
+                    setDevice((current) => (item.id === "code" ? maskMacOrOtp(current) : maskMac(current)));
                     setError(null);
                   }}
                   className={
@@ -128,12 +131,12 @@ export function UploadPlaylist() {
               <span className="mb-2 block text-sm text-soft">
                 {tab === "code" ? copy.device : copy.mac}
               </span>
-              <input
+              <MacInput
                 value={device}
-                onChange={(event) => setDevice(event.target.value)}
+                onChange={setDevice}
+                allowOtp={tab === "code"}
                 placeholder={tab === "code" ? copy.devicePlaceholder : copy.macPlaceholder}
                 autoComplete="off"
-                spellCheck={false}
                 className={inputClass}
                 required
               />
