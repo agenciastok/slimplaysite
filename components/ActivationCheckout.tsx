@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import { TurnstileField } from "@/components/TurnstileField";
 import { useI18n } from "@/lib/i18n";
 import { previewPlans, type ActivationBilling, type ActivationCharge, type ActivationError, type ActivationPlan } from "@/lib/activation";
 import { siteConfig } from "@/lib/site";
@@ -16,7 +17,6 @@ export function ActivationCheckout() {
   const { t, locale } = useI18n();
   const copy = t.activationCheckout;
   const page = t.pages.activation;
-  const formId = useId();
   const [plans, setPlans] = useState<ActivationPlan[]>(previewPlans);
   const [ready, setReady] = useState(false);
   const [plan, setPlan] = useState("30");
@@ -25,29 +25,12 @@ export function ActivationCheckout() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
-  const [question, setQuestion] = useState("");
   const [token, setToken] = useState("");
-  const [answer, setAnswer] = useState("");
+  const [resetKey, setResetKey] = useState(0);
   const [error, setError] = useState<ActivationError | null>(null);
   const [saving, setSaving] = useState(false);
   const [charge, setCharge] = useState<ActivationCharge | null>(null);
   const [copied, setCopied] = useState(false);
-
-  async function loadCaptcha() {
-    setAnswer("");
-    try {
-      const response = await fetch("/api/activation/captcha", { cache: "no-store" });
-      const data = (await response.json()) as { question?: string; token?: string; error?: ActivationError };
-      if (!response.ok || !data.question || !data.token) {
-        setError(data.error ?? "unavailable");
-        return;
-      }
-      setQuestion(data.question);
-      setToken(data.token);
-    } catch {
-      setError("config");
-    }
-  }
 
   useEffect(() => {
     let active = true;
@@ -61,7 +44,6 @@ export function ActivationCheckout() {
         setPlan(next[0]?.code ?? "30");
         const open = Boolean(data.configured && data.plans && data.plans.length > 0);
         setReady(open);
-        if (open) void loadCaptcha();
       } catch {
         if (active) setReady(false);
       }
@@ -96,12 +78,12 @@ export function ActivationCheckout() {
       const response = await fetch("/api/activation/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mac, name, email, cpf, plan, billing, token, answer }),
+        body: JSON.stringify({ mac, name, email, cpf, plan, billing, token }),
       });
       const data = (await response.json().catch(() => null)) as (ActivationCharge & { error?: ActivationError }) | null;
       if (!response.ok || !data?.id) {
         setError(data?.error ?? "save");
-        void loadCaptcha();
+        setResetKey((value) => value + 1);
         return;
       }
       setCharge(data);
@@ -249,40 +231,10 @@ export function ActivationCheckout() {
 
             {ready ? (
               <div className="mt-6 rounded-2xl border border-white/10 bg-black/30 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm text-soft">{t.uploadForm.captcha}</p>
-                  <button type="button" onClick={() => void loadCaptcha()} className="text-xs font-semibold uppercase tracking-[0.12em] text-muted hover:text-white">
-                    {t.uploadForm.refreshCaptcha}
-                  </button>
+                <p className="text-sm text-soft">{t.uploadForm.captcha}</p>
+                <div className="mt-4">
+                  <TurnstileField action="activation" onToken={setToken} resetKey={resetKey} />
                 </div>
-                <p id={`${formId}-captcha`} className="mt-4 flex justify-center gap-2 select-none">
-                  {(question || "•••").split("").map((glyph, index) =>
-                    glyph === " " ? (
-                      <span key={`gap-${index}`} className="w-2" />
-                    ) : (
-                      <span
-                        key={`${glyph}-${index}`}
-                        className="inline-grid h-12 w-9 place-items-center rounded-lg border border-white/10 bg-[#161616] text-xl font-semibold text-white"
-                        style={{ transform: `rotate(${index % 2 === 0 ? -6 : 5}deg)` }}
-                      >
-                        {glyph}
-                      </span>
-                    ),
-                  )}
-                </p>
-                <label className="mt-4 block">
-                  <span className="sr-only">{t.uploadForm.captcha}</span>
-                  <input
-                    value={answer}
-                    onChange={(event) => setAnswer(event.target.value)}
-                    inputMode="numeric"
-                    autoComplete="off"
-                    placeholder={t.uploadForm.captchaPlaceholder}
-                    aria-describedby={`${formId}-captcha`}
-                    className={inputClass}
-                    required
-                  />
-                </label>
               </div>
             ) : null}
 

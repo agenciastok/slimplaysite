@@ -49,14 +49,6 @@ async function hashPassword(password: string) {
   return `pbkdf2$120000$${bytesToHex(salt)}$${bytesToHex(new Uint8Array(bits))}`;
 }
 
-async function captchaValid(secret: string, token: string, answer: string) {
-  const [expires, signature] = token.split(".");
-  if (!expires || !signature || !/^\d+$/.test(expires) || !/^-?\d+$/.test(answer.trim())) return false;
-  if (Number(expires) < Date.now()) return false;
-  const expected = await hmac(secret, `${Number(answer.trim())}.${expires}`);
-  return safeEqual(expected, signature);
-}
-
 async function issueSession(secret: string, id: string, passwordHash: string) {
   const pass = (await hmac(secret, passwordHash)).slice(0, 32);
   const payload = bytesToBase64Url(new TextEncoder().encode(JSON.stringify({ id, exp: Date.now() + SESSION_MS, pass })));
@@ -87,9 +79,6 @@ Deno.serve(async (request) => {
   const email = cleanEmail(typeof body.email === "string" ? body.email : "");
   const phone = typeof body.phone === "string" ? body.phone.trim().slice(0, 30) : "";
   const password = typeof body.password === "string" ? body.password : "";
-  const token = typeof body.token === "string" ? body.token : "";
-  const answer = typeof body.answer === "string" ? body.answer : "";
-  if (!(await captchaValid(secret, token, answer))) return fail("captcha");
   if (!name) return fail("name");
   if (!email) return fail("email");
   if (phone.replace(/\D/g, "").length < 8) return fail("phone");

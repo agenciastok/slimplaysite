@@ -5,7 +5,7 @@ export const siteConfig = {
   year: 2026,
 } as const;
 
-export type LinkId = "home" | "activation" | "upload" | "reseller" | "terms" | "privacy";
+export type LinkId = "home" | "activation" | "upload" | "reseller" | "terms" | "privacy" | "cookies";
 
 export const navItems: Array<{ href: string; id: LinkId }> = [
   { href: "/", id: "home" },
@@ -20,6 +20,7 @@ export const footerItems: Array<{ href: string; id: LinkId }> = [
   { href: "/upload", id: "upload" },
   { href: "/termos", id: "terms" },
   { href: "/privacidade", id: "privacy" },
+  { href: "/cookies", id: "cookies" },
 ];
 
 export type PageId =
@@ -28,6 +29,7 @@ export type PageId =
   | "reseller"
   | "terms"
   | "privacy"
+  | "cookies"
   | "chromecast"
   | "firestick";
 

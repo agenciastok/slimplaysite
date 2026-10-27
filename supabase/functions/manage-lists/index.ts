@@ -73,26 +73,6 @@ function normalizeMac(value: string) {
   return hex.match(/.{2}/g)!.join(":");
 }
 
-async function issueCaptcha(secret: string) {
-  const first = 2 + Math.floor(Math.random() * 8);
-  const second = 2 + Math.floor(Math.random() * 8);
-  const subtract = Math.random() < 0.45;
-  const left = subtract && second > first ? second : first;
-  const right = subtract && second > first ? first : second;
-  const answer = subtract ? left - right : left + right;
-  const expires = Date.now() + 10 * 60 * 1000;
-  const signature = await sign(secret, `${answer}.${expires}`);
-  return { question: `${left} ${subtract ? "−" : "+"} ${right}`, token: `${expires}.${signature}` };
-}
-
-async function captchaValid(secret: string, token: string, answer: string) {
-  const [expires, signature] = token.split(".");
-  if (!expires || !signature || !/^\d+$/.test(expires) || !/^\d+$/.test(answer.trim())) return false;
-  if (Number(expires) < Date.now()) return false;
-  const expected = await sign(secret, `${Number(answer.trim())}.${expires}`);
-  return safeEqual(expected, signature);
-}
-
 async function issueSession(secret: string, mac: string, deviceKey: string) {
   const keyHash = await sign(secret, `${mac}.${deviceKey}`);
   const payload = bytesToBase64Url(
@@ -236,17 +216,13 @@ Deno.serve(async (req) => {
   }
 
   const action = String(body.action ?? "");
-  if (action === "captcha") return json(await issueCaptcha(secret));
+  if (action === "captcha") return fail("captcha");
 
   const admin = createClient(supabaseUrl, secret, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
   if (action === "login") {
-    const token = String(body.token ?? "");
-    const answer = String(body.answer ?? "");
-    if (!(await captchaValid(secret, token, answer))) return fail("captcha");
-
     const mac = normalizeMac(String(body.mac ?? ""));
     const deviceKey = String(body.deviceKey ?? "").trim();
     if (!mac || !deviceKey || deviceKey.length > 6) return fail("credentials");

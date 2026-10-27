@@ -67,29 +67,6 @@ function normalizeDevice(value: string, allowOtp: boolean) {
   return hex.match(/.{2}/g)!.join(":");
 }
 
-async function issueCaptcha(secret: string) {
-  const first = 2 + Math.floor(Math.random() * 8);
-  const second = 2 + Math.floor(Math.random() * 8);
-  const subtract = Math.random() < 0.45;
-  const left = subtract && second > first ? second : first;
-  const right = subtract && second > first ? first : second;
-  const answer = subtract ? left - right : left + right;
-  const expires = Date.now() + 10 * 60 * 1000;
-  const signature = await sign(secret, `${answer}.${expires}`);
-  return {
-    question: `${left} ${subtract ? "−" : "+"} ${right}`,
-    token: `${expires}.${signature}`,
-  };
-}
-
-async function captchaValid(secret: string, token: string, answer: string) {
-  const [expires, signature] = token.split(".");
-  if (!expires || !signature || !/^\d+$/.test(expires) || !/^\d+$/.test(answer.trim())) return false;
-  if (Number(expires) < Date.now()) return false;
-  const expected = await sign(secret, `${Number(answer.trim())}.${expires}`);
-  return safeEqual(expected, signature);
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return fail("save", 405);
@@ -107,12 +84,6 @@ Deno.serve(async (req) => {
   } catch {
     return fail("save");
   }
-
-  if (body.action === "captcha") return json(await issueCaptcha(secret));
-
-  const token = String(body.token ?? "");
-  const answer = String(body.answer ?? "");
-  if (!(await captchaValid(secret, token, answer))) return fail("captcha");
 
   const type = String(body.type ?? "") as PlaylistType;
   if (type === "file") return fail("file");

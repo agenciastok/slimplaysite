@@ -111,26 +111,6 @@ function cleanComment(value: string) {
   return comment;
 }
 
-async function issueCaptcha(secret: string) {
-  const first = 2 + Math.floor(Math.random() * 8);
-  const second = 2 + Math.floor(Math.random() * 8);
-  const subtract = Math.random() < 0.45;
-  const left = subtract && second > first ? second : first;
-  const right = subtract && second > first ? first : second;
-  const answer = subtract ? left - right : left + right;
-  const expires = Date.now() + 10 * 60 * 1000;
-  const signature = await hmac(secret, `${answer}.${expires}`);
-  return { question: `${left}${subtract ? " - " : " + "}${right}`, token: `${expires}.${signature}` };
-}
-
-async function captchaValid(secret: string, token: string, answer: string) {
-  const [expires, signature] = token.split(".");
-  if (!expires || !signature || !/^\d+$/.test(expires) || !/^-?\d+$/.test(answer.trim())) return false;
-  if (Number(expires) < Date.now()) return false;
-  const expected = await hmac(secret, `${Number(answer.trim())}.${expires}`);
-  return safeEqual(expected, signature);
-}
-
 async function issueSession(secret: string, id: string, passwordHash: string) {
   const pass = (await hmac(secret, passwordHash)).slice(0, 32);
   const payload = bytesToBase64Url(new TextEncoder().encode(JSON.stringify({ id, exp: Date.now() + SESSION_MS, pass })));
@@ -215,14 +195,11 @@ Deno.serve(async (request) => {
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   if (!body || typeof body.action !== "string") return fail("save");
 
-  if (body.action === "captcha") return json(await issueCaptcha(secret));
+  if (body.action === "captcha") return fail("captcha");
 
   if (body.action === "login") {
     const email = cleanEmail(typeof body.email === "string" ? body.email : "");
     const password = typeof body.password === "string" ? body.password : "";
-    const token = typeof body.token === "string" ? body.token : "";
-    const answer = typeof body.answer === "string" ? body.answer : "";
-    if (!(await captchaValid(secret, token, answer))) return fail("captcha");
     if (!email || password.length < 8 || password.length > 72) return fail("credentials", 401);
     const { data } = await admin.from("resellers").select("id, name, email, credits, password_hash").eq("email", email).maybeSingle();
     if (!data || !(await passwordMatches(password, data.password_hash))) return fail("credentials", 401);

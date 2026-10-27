@@ -93,26 +93,6 @@ function cleanEmail(value: string) {
   return email;
 }
 
-async function issueCaptcha(secret: string) {
-  const first = 2 + Math.floor(Math.random() * 8);
-  const second = 2 + Math.floor(Math.random() * 8);
-  const subtract = Math.random() < 0.45;
-  const left = subtract && second > first ? second : first;
-  const right = subtract && second > first ? first : second;
-  const answer = subtract ? left - right : left + right;
-  const expires = Date.now() + 10 * 60 * 1000;
-  const signature = await sign(secret, `${answer}.${expires}`);
-  return { question: `${left} ${subtract ? "−" : "+"} ${right}`, token: `${expires}.${signature}` };
-}
-
-async function captchaValid(secret: string, token: string, answer: string) {
-  const [expires, signature] = token.split(".");
-  if (!expires || !signature || !/^\d+$/.test(expires) || !/^\d+$/.test(answer.trim())) return false;
-  if (Number(expires) < Date.now()) return false;
-  const expected = await sign(secret, `${Number(answer.trim())}.${expires}`);
-  return safeEqual(expected, signature);
-}
-
 function dueDate() {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Sao_Paulo",
@@ -181,10 +161,7 @@ Deno.serve(async (request) => {
     });
   }
 
-  if (action === "captcha") {
-    if (!gatewayReady()) return fail("unavailable", 503);
-    return json(await issueCaptcha(secret));
-  }
+  if (action === "captcha") return fail("captcha");
 
   if (action === "status") {
     const id = typeof body.id === "string" ? body.id : "";
@@ -221,9 +198,6 @@ Deno.serve(async (request) => {
   const billing: Billing | null = body.billing === "pix" || body.billing === "credit_card" ? body.billing : null;
   if (!billing) return fail("plan");
   const planCode = typeof body.plan === "string" ? body.plan : "";
-  const token = typeof body.token === "string" ? body.token : "";
-  const answer = typeof body.answer === "string" ? body.answer : "";
-  if (!(await captchaValid(secret, token, answer))) return fail("captcha");
 
   const { data: plan, error: planError } = await admin
     .from("activation_plans")

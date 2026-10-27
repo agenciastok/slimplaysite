@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
+import { TurnstileField } from "@/components/TurnstileField";
 import { useI18n } from "@/lib/i18n";
 import type { ResellerError } from "@/lib/reseller";
 
@@ -13,47 +14,26 @@ export function ResellerLogin() {
   const { t } = useI18n();
   const copy = t.resellerPanel;
   const router = useRouter();
-  const formId = useId();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [question, setQuestion] = useState("");
   const [token, setToken] = useState("");
-  const [answer, setAnswer] = useState("");
+  const [resetKey, setResetKey] = useState(0);
   const [error, setError] = useState<ResellerError | null>(null);
   const [mismatch, setMismatch] = useState(false);
   const [saving, setSaving] = useState(false);
   const signup = mode === "signup";
-
-  async function loadCaptcha() {
-    setAnswer("");
-    try {
-      const response = await fetch("/api/reseller/captcha", { cache: "no-store" });
-      const data = (await response.json()) as { question?: string; token?: string; error?: ResellerError };
-      if (!response.ok || !data.question || !data.token) {
-        setError(data.error ?? "config");
-        return;
-      }
-      setQuestion(data.question);
-      setToken(data.token);
-    } catch {
-      setError("config");
-    }
-  }
-
-  useEffect(() => {
-    void loadCaptcha();
-  }, []);
 
   function switchMode(next: "login" | "signup") {
     setMode(next);
     setError(null);
     setMismatch(false);
     setConfirm("");
-    void loadCaptcha();
+    setToken("");
+    setResetKey((value) => value + 1);
   }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -71,12 +51,12 @@ export function ResellerLogin() {
       const response = await fetch(signup ? "/api/reseller/register" : "/api/reseller/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(signup ? { name, email, phone, password, token, answer } : { email, password, token, answer }),
+        body: JSON.stringify(signup ? { name, email, phone, password, token } : { email, password, token }),
       });
       const data = (await response.json().catch(() => null)) as { ok?: boolean; error?: ResellerError } | null;
       if (!response.ok || !data?.ok) {
         setError(data?.error ?? (signup ? "save" : "credentials"));
-        void loadCaptcha();
+        setResetKey((value) => value + 1);
         return;
       }
       router.replace("/revendedor");
@@ -121,33 +101,10 @@ export function ResellerLogin() {
           </label>
         ) : null}
         <div className="mt-6 rounded-2xl border border-white/10 bg-black/30 p-4">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm text-soft">{t.uploadForm.captcha}</p>
-            <button type="button" onClick={() => void loadCaptcha()} className="text-xs font-semibold uppercase tracking-[0.12em] text-muted hover:text-white">
-              {t.uploadForm.refreshCaptcha}
-            </button>
+          <p className="text-sm text-soft">{t.uploadForm.captcha}</p>
+          <div className="mt-4">
+            <TurnstileField action={signup ? "reseller-signup" : "reseller-login"} onToken={setToken} resetKey={resetKey} />
           </div>
-          <p id={`${formId}-captcha`} className="mt-4 flex justify-center gap-2 select-none">
-            {(question || "•••").split("").map((glyph, index) =>
-              glyph === " " ? (
-                <span key={`gap-${index}`} className="w-2" />
-              ) : (
-                <span key={`${glyph}-${index}`} className="inline-grid h-12 w-9 place-items-center rounded-lg border border-white/10 bg-[#161616] text-xl font-semibold text-white" style={{ transform: `rotate(${index % 2 === 0 ? -6 : 5}deg)` }}>
-                  {glyph}
-                </span>
-              ),
-            )}
-          </p>
-          <input
-            value={answer}
-            onChange={(event) => setAnswer(event.target.value)}
-            inputMode="numeric"
-            autoComplete="off"
-            placeholder={t.uploadForm.captchaPlaceholder}
-            aria-describedby={`${formId}-captcha`}
-            className={`${inputClass} mt-4`}
-            required
-          />
         </div>
         {signup ? <p className="mt-4 text-sm text-muted">{copy.signupNote}</p> : null}
         {mismatch ? <p role="alert" className="mt-4 text-sm text-accent-bright">{copy.passwordMismatch}</p> : null}
@@ -159,6 +116,11 @@ export function ResellerLogin() {
           {signup ? copy.haveAccount : copy.needAccount}
         </button>
         <a href="/" className="mt-3 block text-center text-sm text-muted hover:text-white">{copy.home}</a>
+        <p className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-center text-xs text-muted">
+          <a href="/termos" className="hover:text-white">{t.links.terms}</a>
+          <a href="/privacidade" className="hover:text-white">{t.links.privacy}</a>
+          <a href="/cookies" className="hover:text-white">{t.links.cookies}</a>
+        </p>
       </form>
     </main>
   );

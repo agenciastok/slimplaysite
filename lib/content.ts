@@ -7,11 +7,18 @@ export const locales: Array<{ id: Locale; label: string; short: string }> = [
   { id: "en", label: "English", short: "EN" },
 ];
 
+type PageSection = {
+  title: string;
+  paragraphs: string[];
+};
+
 type PageCopy = {
   kicker: string;
   title: string;
   lead: string;
+  updated?: string;
   points: string[];
+  sections?: PageSection[];
   action?: { href: string; label: string };
 };
 
@@ -75,6 +82,11 @@ export type Dictionary = {
     linksTitle: string;
     contactTitle: string;
     legal: string;
+  };
+  cookieNotice: {
+    text: string;
+    policy: string;
+    action: string;
   };
   supportLabel: string;
   pages: Record<PageId, PageCopy>;
@@ -284,6 +296,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       reseller: "Revendedor",
       terms: "Termos de Uso",
       privacy: "Política de Privacidade",
+      cookies: "Política de Cookies",
     },
     a11y: {
       skip: "Ir para o conteúdo",
@@ -462,6 +475,11 @@ export const dictionaries: Record<Locale, Dictionary> = {
       legal:
         "Slim Play © 2026. Todos os direitos reservados. O aplicativo é apenas um player de mídia e não contém nenhum conteúdo multimídia pré-carregado.",
     },
+    cookieNotice: {
+      text: "Usamos apenas armazenamento necessário para o idioma, a sessão e lembrar que você viu este aviso. Não há cookie de anúncio nem de análise.",
+      policy: "Política de Cookies",
+      action: "Entendi",
+    },
     supportLabel: "Suporte",
     pages: {
       activation: {
@@ -499,25 +517,165 @@ export const dictionaries: Record<Locale, Dictionary> = {
       terms: {
         kicker: "Termos de Uso",
         title: "Termos de Uso",
-        lead: "O Slim Play é um reprodutor de mídia. O site e o aplicativo não são um serviço de conteúdo.",
-        points: [
-          "Você é responsável pelas listas e arquivos que decidir reproduzir.",
-          "Não há mídia pré-carregada no aplicativo.",
-          "Os 7 dias de degustação cobrem os recursos de reprodução, não um catálogo.",
-          "A licença paga libera o player no dispositivo informado. Não inclui lista, canal ou arquivo.",
-          "A licença pode ser encerrada em caso de uso abusivo do aplicativo.",
+        lead: "Estes termos regem o site e o aplicativo Slim Play. O Slim Play é um reprodutor de mídia. Não é um serviço de canais, filmes ou playlists.",
+        updated: "Vigência: 26 de outubro de 2026.",
+        points: [],
+        sections: [
+          {
+            title: "O serviço",
+            paragraphs: [
+              "O Slim Play reproduz listas e arquivos que você mesmo adiciona, em formatos como M3U ou Xtream.",
+              "O site apresenta o player, a ativação da licença, o envio da sua lista e o painel de revenda da licença.",
+            ],
+          },
+          {
+            title: "O que não está incluído",
+            paragraphs: [
+              "Não hospedamos, não vendemos e não fornecemos conteúdos, canais ou playlists.",
+              "Não há mídia pré-carregada. A lista continua sendo a sua, ou a do fornecedor que você escolher.",
+            ],
+          },
+          {
+            title: "Quem pode contratar",
+            paragraphs: [
+              "A licença paga é contratada por pessoa com 18 anos ou mais, ou por quem a represente legalmente.",
+              "Você responde pelos dados do dispositivo e da lista que informar.",
+            ],
+          },
+          {
+            title: "Licença e pagamento",
+            paragraphs: [
+              "A licença libera o player no dispositivo indicado pelo endereço MAC. Ela não inclui lista, canal ou arquivo.",
+              "A degustação, quando disponível, cobre os recursos de reprodução por 7 dias. Não é um catálogo.",
+              "A licença paga segue o prazo do plano escolhido. O tempo novo soma-se ao que ainda estiver vigente no aparelho, a partir da confirmação do pagamento.",
+              "Quando o pagamento estiver ativo, PIX e cartão são processados pelo gateway. O número do cartão é digitado só lá. O Slim Play não o recebe.",
+            ],
+          },
+          {
+            title: "Arrependimento",
+            paragraphs: [
+              "Na compra feita pela internet, você pode desistir em até 7 dias contados da contratação, pelo e-mail de suporte. Esse prazo é o do Código de Defesa do Consumidor e não se confunde com a degustação do player.",
+            ],
+          },
+          {
+            title: "Suas listas",
+            paragraphs: [
+              "Envie somente listas e endereços que você tem direito de reproduzir.",
+              "Endereços M3U e credenciais Xtream ficam guardados para o player abrir a lista que você cadastrou. Na área logada, você pode editar ou excluir as suas listas.",
+              "O Slim Play não controla servidores de terceiros. Se um endereço deixar de funcionar, o suporte cobre o player, não o conteúdo do fornecedor.",
+            ],
+          },
+          {
+            title: "Revenda",
+            paragraphs: [
+              "O painel de revendedor distribui licenças do aplicativo, nunca conteúdos ou playlists.",
+              "Cada crédito ativa um MAC por 1 ano. A conta começa sem créditos.",
+              "O material comercial deve deixar claro que o Slim Play é um player neutro, sem catálogo incluso.",
+              "O revendedor responde pelos dados que cadastrar e pelo uso da própria conta.",
+            ],
+          },
+          {
+            title: "Uso aceitável",
+            paragraphs: [
+              "É vedado atacar o serviço, burlar a licença ou apresentar o Slim Play como fornecedor de conteúdo.",
+              "A licença ou a conta de revendedor pode ser encerrada em caso de uso abusivo do aplicativo ou destes termos.",
+              "Um aviso sobre uso indevido do aplicativo pode ser enviado ao e-mail de suporte. Não tratamos o catálogo de terceiros como se fosse nosso.",
+            ],
+          },
+          {
+            title: "Responsabilidade, lei e contato",
+            paragraphs: [
+              "O player reproduz o que você adicionar. Não garantimos disponibilidade, qualidade ou legalidade de listas e servidores de terceiros.",
+              "Na medida permitida pela lei brasileira, a responsabilidade do Slim Play limita-se à licença do aplicativo.",
+              "Estes termos seguem as leis do Brasil. Dúvidas e pedidos vão para contato@slimplay.app. A data no topo indica a versão vigente.",
+            ],
+          },
         ],
       },
       privacy: {
         kicker: "Privacidade",
         title: "Política de Privacidade",
-        lead: "Coletamos o mínimo necessário para responder você, lembrar o idioma deste navegador e ativar a licença do player.",
-        points: [
-          "A preferência de idioma fica salva apenas neste aparelho.",
-          "A ativação pede nome, e-mail, CPF e MAC para emitir a cobrança e ligar a licença ao aparelho. O cartão é digitado só no gateway. O Slim Play não guarda CPF nem dados de cartão.",
-          "O cadastro de revendedor guarda nome, e-mail e telefone para o painel de créditos. A senha fica apenas como hash.",
-          "Mensagens enviadas ao e-mail de suporte são usadas para responder o seu pedido.",
-          "Não vendemos dados pessoais.",
+        lead: "Esta política explica quais dados o site trata, para quê e quais são os seus direitos. O controlador é o responsável pelo Slim Play, contatado pelo e-mail de suporte.",
+        updated: "Vigência: 26 de outubro de 2026.",
+        points: [],
+        sections: [
+          {
+            title: "Dados que tratamos",
+            paragraphs: [
+              "Idioma e o registro de que você viu os avisos deste navegador ficam só neste aparelho.",
+              "Para gerenciar listas, guardamos o MAC, a chave do dispositivo usada no login e os dados da lista que você enviar: nome, endereço M3U ou código, e, no Xtream, servidor, usuário e senha. Isso serve para o player abrir a sua lista.",
+              "Na ativação, o nome, o e-mail, o CPF e o MAC seguem para o gateway emitir a cobrança e ligar a licença ao aparelho. O Slim Play não guarda o CPF nem os dados do cartão. Guardamos o registro do pagamento: MAC, plano, valor, forma (PIX ou cartão), status e identificadores do gateway.",
+              "No cadastro de revendedor, guardamos nome, e-mail, telefone e a senha apenas como hash, além dos créditos e dos MAC que essa conta ativar.",
+              "Mensagens enviadas ao e-mail de suporte são usadas para responder o seu pedido.",
+            ],
+          },
+          {
+            title: "Finalidade e base legal",
+            paragraphs: [
+              "Executamos o contrato ao ativar a licença, guardar a sua lista e operar a conta de revendedor.",
+              "O interesse legítimo cobre a segurança da sessão, o desafio contra acesso automatizado e a prevenção de abuso do aplicativo.",
+              "A obrigação legal cobre o registro da compra pelo prazo exigido para atendimento ao consumidor e obrigações fiscais, quando houver pagamento.",
+              "Não vendemos dados pessoais e não usamos os dados para publicidade.",
+            ],
+          },
+          {
+            title: "Com quem compartilhamos",
+            paragraphs: [
+              "O gateway de pagamento recebe nome, e-mail, CPF e o valor da cobrança para processar PIX ou cartão. O cartão é digitado somente no gateway.",
+              "A infraestrutura que guarda o banco e executa o site trata os dados em nosso nome, para hospedar o serviço. Esses prestadores podem manter servidores fora do Brasil.",
+              "Podemos informar dados se uma autoridade competente exigir, nos limites da lei.",
+            ],
+          },
+          {
+            title: "Por quanto tempo",
+            paragraphs: [
+              "A sessão de listas e a sessão de revendedor duram 12 horas.",
+              "Idioma e avisos locais permanecem até você limpar os dados deste navegador.",
+              "A conta de revendedor e as listas permanecem enquanto a conta ou a lista existir. Você pode pedir a exclusão pelo e-mail de suporte.",
+              "Registros de pagamento permanecem pelo tempo necessário para a licença, o atendimento do arrependimento e as obrigações legais.",
+            ],
+          },
+          {
+            title: "Os seus direitos",
+            paragraphs: [
+              "Você pode pedir confirmação, acesso, correção, anonimização, portabilidade, informação sobre compartilhamento, revogação de consentimento e eliminação dos dados tratados com base em consentimento.",
+              "O pedido é feito para contato@slimplay.app. Também é possível apresentar reclamação à Autoridade Nacional de Proteção de Dados.",
+              "O site e a licença paga não são dirigidos a crianças. Não coletamos dados de crianças de forma intencional.",
+            ],
+          },
+        ],
+      },
+      cookies: {
+        kicker: "Cookies",
+        title: "Política de Cookies",
+        lead: "O site usa somente armazenamento necessário para funcionar. Não há cookie de anúncio, rede social ou medição de audiência.",
+        updated: "Vigência: 26 de outubro de 2026.",
+        points: [],
+        sections: [
+          {
+            title: "O que fica neste navegador",
+            paragraphs: [
+              "O idioma escolhido fica na memória local deste aparelho, na chave slimplay-locale, até você limpar os dados do navegador.",
+              "O aviso de que o Slim Play é um player neutro e a ciência desta política também ficam na memória local, para não serem exibidos de novo.",
+              "Depois do login de listas, um cookie chamado slimplay-device guarda a sessão por 12 horas. Ele é httpOnly: o JavaScript da página não lê esse valor.",
+              "Depois do login de revendedor, o cookie slimplay-reseller guarda a sessão por 12 horas, também httpOnly.",
+            ],
+          },
+          {
+            title: "Por que são necessários",
+            paragraphs: [
+              "Sem o idioma, o site não lembra a sua escolha. Sem a sessão, a área de listas e o painel de revendedor exigiriam login a cada passo.",
+              "Por serem necessários ao serviço que você pediu, esses itens não dependem de uma autorização separada. O aviso no rodapé da tela existe para informar, e o botão Entendi registra que você o viu.",
+            ],
+          },
+          {
+            title: "Como controlar",
+            paragraphs: [
+              "Você pode apagar cookies e dados do site nas configurações do navegador. A sessão termina e o idioma volta ao padrão.",
+              "Bloquear todo cookie impede o login de listas e o painel de revendedor. A leitura das páginas públicas continua possível.",
+              "Detalhes sobre os demais dados estão na Política de Privacidade. Dúvidas: contato@slimplay.app.",
+            ],
+          },
         ],
       },
       chromecast: {
@@ -566,7 +724,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       protect: "Protect Playlist",
       setPin: "Set PIN",
       confirmPin: "Confirm PIN",
-      captcha: "Confirme o resultado para continuar",
+      captcha: "Confirme que você é humano",
       refreshCaptcha: "Gerar outro desafio",
       captchaPlaceholder: "Resultado",
       submit: "Carregar / Salvar lista",
@@ -765,6 +923,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       reseller: "Reseller",
       terms: "Terms of Use",
       privacy: "Privacy Policy",
+      cookies: "Cookie Policy",
     },
     a11y: {
       skip: "Skip to content",
@@ -943,6 +1102,11 @@ export const dictionaries: Record<Locale, Dictionary> = {
       legal:
         "Slim Play © 2026. All rights reserved. The app is only a media player and does not include any preloaded multimedia content.",
     },
+    cookieNotice: {
+      text: "We only store what the site needs for language, your session, and remembering that you saw this notice. There are no advertising or analytics cookies.",
+      policy: "Cookie Policy",
+      action: "Got it",
+    },
     supportLabel: "Support",
     pages: {
       activation: {
@@ -980,25 +1144,165 @@ export const dictionaries: Record<Locale, Dictionary> = {
       terms: {
         kicker: "Terms of Use",
         title: "Terms of Use",
-        lead: "Slim Play is a media player. The site and the app are not a content service.",
-        points: [
-          "You are responsible for the lists and files you choose to play.",
-          "The app includes no preloaded media.",
-          "The 7-day trial covers playback features, not a catalog.",
-          "A paid license unlocks the player on the device you enter. It does not include a list, channel, or file.",
-          "The license may end in cases of abusive use of the app.",
+        lead: "These terms cover the Slim Play site and app. Slim Play is a media player. It is not a channel, movie, or playlist service.",
+        updated: "Effective: October 26, 2026.",
+        points: [],
+        sections: [
+          {
+            title: "The service",
+            paragraphs: [
+              "Slim Play plays lists and files you add yourself, in formats such as M3U or Xtream.",
+              "The site presents the player, license activation, your list upload, and the license reseller panel.",
+            ],
+          },
+          {
+            title: "What is not included",
+            paragraphs: [
+              "We do not host, sell, or provide content, channels, or playlists.",
+              "Nothing is preloaded. The list remains yours, or your chosen provider's.",
+            ],
+          },
+          {
+            title: "Who can buy a license",
+            paragraphs: [
+              "A paid license is bought by someone 18 or older, or by a person who legally represents them.",
+              "You are responsible for the device and list details you submit.",
+            ],
+          },
+          {
+            title: "License and payment",
+            paragraphs: [
+              "The license unlocks the player on the device identified by its MAC address. It does not include a list, channel, or file.",
+              "The trial, when available, covers playback features for 7 days. It is not a catalog.",
+              "A paid license follows the plan length you choose. New time is added to any time still left on the device, starting when payment is confirmed.",
+              "When payment is enabled, PIX and card are processed by the gateway. The card number is entered only there. Slim Play does not receive it.",
+            ],
+          },
+          {
+            title: "Withdrawal",
+            paragraphs: [
+              "For a purchase made online, you may withdraw within 7 days of the contract by emailing support. That period comes from the Brazilian Consumer Defense Code and is separate from the player trial.",
+            ],
+          },
+          {
+            title: "Your lists",
+            paragraphs: [
+              "Upload only lists and addresses you have the right to play.",
+              "M3U addresses and Xtream credentials are stored so the player can open the list you added. While signed in, you can edit or delete your lists.",
+              "Slim Play does not control third-party servers. If an address stops working, support covers the player, not your provider's content.",
+            ],
+          },
+          {
+            title: "Resale",
+            paragraphs: [
+              "The reseller panel distributes app licenses, never content or playlists.",
+              "Each credit activates one MAC for 1 year. The account starts with no credits.",
+              "Sales material must make clear that Slim Play is a neutral player, with no catalog included.",
+              "The reseller is responsible for the data they enter and for use of their account.",
+            ],
+          },
+          {
+            title: "Acceptable use",
+            paragraphs: [
+              "You may not attack the service, bypass the license, or present Slim Play as a content provider.",
+              "The license or reseller account may end in cases of abusive use of the app or of these terms.",
+              "A notice about misuse of the app can be sent to the support email. We do not treat a third-party catalog as our own.",
+            ],
+          },
+          {
+            title: "Liability, law, and contact",
+            paragraphs: [
+              "The player plays what you add. We do not guarantee the availability, quality, or legality of third-party lists and servers.",
+              "To the extent Brazilian law allows, Slim Play's liability is limited to the app license.",
+              "These terms follow the laws of Brazil. Questions and requests go to contato@slimplay.app. The date at the top is the current version.",
+            ],
+          },
         ],
       },
       privacy: {
         kicker: "Privacy",
         title: "Privacy Policy",
-        lead: "We keep only what we need to reply to you, remember the language in this browser, and activate the player license.",
-        points: [
-          "The language preference is stored only on this device.",
-          "Activation asks for name, email, CPF, and MAC to issue the charge and tie the license to the device. The card is entered only at the gateway. Slim Play does not store the CPF or card data.",
-          "Reseller signup stores the name, email, and phone for the credit panel. The password is kept only as a hash.",
-          "Messages sent to support are used to answer your request.",
-          "We do not sell personal data.",
+        lead: "This policy explains which data the site handles, why, and which rights you have. The controller is the party responsible for Slim Play, reached at the support email.",
+        updated: "Effective: October 26, 2026.",
+        points: [],
+        sections: [
+          {
+            title: "Data we handle",
+            paragraphs: [
+              "Your language and the record that you saw the notices in this browser stay on this device only.",
+              "To manage lists, we store the MAC, the device key used at login, and the list you submit: name, M3U address or code, and, for Xtream, server, username, and password. That is what lets the player open your list.",
+              "For activation, the name, email, CPF, and MAC go to the gateway to issue the charge and tie the license to the device. Slim Play does not store the CPF or the card data. We keep the payment record: MAC, plan, amount, method (PIX or card), status, and gateway identifiers.",
+              "Reseller signup stores the name, email, phone, and the password only as a hash, plus credits and the MACs that account activates.",
+              "Messages sent to support are used to answer your request.",
+            ],
+          },
+          {
+            title: "Purpose and legal basis",
+            paragraphs: [
+              "We perform the contract when we activate the license, store your list, and run the reseller account.",
+              "Legitimate interest covers session security, the challenge against automated access, and preventing abuse of the app.",
+              "Legal obligation covers keeping the purchase record for as long as consumer and tax rules require, when a payment exists.",
+              "We do not sell personal data and we do not use the data for advertising.",
+            ],
+          },
+          {
+            title: "Who we share it with",
+            paragraphs: [
+              "The payment gateway receives the name, email, CPF, and charge amount to process PIX or card. The card is entered only at the gateway.",
+              "The infrastructure that stores the database and runs the site handles data on our behalf, to host the service. Those providers may keep servers outside Brazil.",
+              "We may disclose data if a competent authority requires it, within the limits of the law.",
+            ],
+          },
+          {
+            title: "How long we keep it",
+            paragraphs: [
+              "The list session and the reseller session last 12 hours.",
+              "Language and local notices stay until you clear this browser's data.",
+              "The reseller account and the lists remain while the account or the list exists. You can ask for deletion at the support email.",
+              "Payment records remain for as long as the license, the withdrawal period, and legal duties require.",
+            ],
+          },
+          {
+            title: "Your rights",
+            paragraphs: [
+              "You may ask for confirmation, access, correction, anonymization, portability, information about sharing, withdrawal of consent, and deletion of data handled on the basis of consent.",
+              "Send the request to contato@slimplay.app. You may also lodge a complaint with the Brazilian National Data Protection Authority.",
+              "The site and the paid license are not directed at children. We do not knowingly collect children's data.",
+            ],
+          },
+        ],
+      },
+      cookies: {
+        kicker: "Cookies",
+        title: "Cookie Policy",
+        lead: "The site only stores what it needs to work. There are no advertising, social, or audience-measurement cookies.",
+        updated: "Effective: October 26, 2026.",
+        points: [],
+        sections: [
+          {
+            title: "What stays in this browser",
+            paragraphs: [
+              "The language you choose stays in this device's local storage, under the key slimplay-locale, until you clear the browser data.",
+              "The notice that Slim Play is a neutral player, and the record that you saw this policy, also stay in local storage so they are not shown again.",
+              "After list login, a cookie named slimplay-device keeps the session for 12 hours. It is httpOnly: page JavaScript cannot read that value.",
+              "After reseller login, the slimplay-reseller cookie keeps the session for 12 hours, also httpOnly.",
+            ],
+          },
+          {
+            title: "Why they are necessary",
+            paragraphs: [
+              "Without the language setting, the site cannot remember your choice. Without the session, the list area and the reseller panel would ask you to sign in at every step.",
+              "Because they are necessary for the service you asked for, they do not depend on a separate permission. The notice at the bottom of the screen is there to inform you, and Got it records that you saw it.",
+            ],
+          },
+          {
+            title: "How to control them",
+            paragraphs: [
+              "You can delete cookies and site data in the browser settings. The session ends and the language returns to the default.",
+              "Blocking every cookie prevents list login and the reseller panel. Public pages can still be read.",
+              "Other data is described in the Privacy Policy. Questions: contato@slimplay.app.",
+            ],
+          },
         ],
       },
       chromecast: {
@@ -1047,7 +1351,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       protect: "Protect Playlist",
       setPin: "Set PIN",
       confirmPin: "Confirm PIN",
-      captcha: "Confirm the result to continue",
+      captcha: "Confirm you are human",
       refreshCaptcha: "New challenge",
       captchaPlaceholder: "Result",
       submit: "Load / Save list",

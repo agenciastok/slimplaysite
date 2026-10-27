@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useId, useState, type FormEvent } from "react";
+import { TurnstileField } from "@/components/TurnstileField";
 import { useI18n } from "@/lib/i18n";
 
 type Tab = "code" | "url" | "xtream";
@@ -25,33 +26,11 @@ export function UploadPlaylist() {
   const [protect, setProtect] = useState(false);
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
-  const [question, setQuestion] = useState("");
   const [token, setToken] = useState("");
-  const [answer, setAnswer] = useState("");
+  const [resetKey, setResetKey] = useState(0);
   const [error, setError] = useState<UploadError | null>(null);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
-
-  async function loadCaptcha() {
-    setAnswer("");
-    try {
-      const response = await fetch("/api/playlist", { cache: "no-store" });
-      const data = (await response.json()) as { question?: string; token?: string; error?: UploadError };
-      if (!response.ok || !data.question || !data.token) {
-        setError(data.error ?? "config");
-        return;
-      }
-      setQuestion(data.question);
-      setToken(data.token);
-      setError((current) => (current === "config" || current === "captcha" ? null : current));
-    } catch {
-      setError("config");
-    }
-  }
-
-  useEffect(() => {
-    void loadCaptcha();
-  }, []);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -76,21 +55,19 @@ export function UploadPlaylist() {
           pin,
           confirmPin,
           token,
-          answer,
         }),
       });
       const data = (await response.json().catch(() => null)) as { error?: UploadError; ok?: boolean } | null;
       if (!response.ok || !data?.ok) {
         setError(data?.error ?? "save");
-        if (data?.error === "captcha") void loadCaptcha();
+        setResetKey((value) => value + 1);
         return;
       }
       setSuccess(true);
       setPassword("");
       setPin("");
       setConfirmPin("");
-      setAnswer("");
-      void loadCaptcha();
+      setResetKey((value) => value + 1);
     } catch {
       setError("save");
     } finally {
@@ -304,44 +281,10 @@ export function UploadPlaylist() {
           ) : null}
 
           <div className="mt-6 rounded-2xl border border-white/10 bg-black/30 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm text-soft">{copy.captcha}</p>
-              <button
-                type="button"
-                onClick={() => void loadCaptcha()}
-                className="text-xs font-semibold uppercase tracking-[0.12em] text-muted transition-colors hover:text-white"
-              >
-                {copy.refreshCaptcha}
-              </button>
+            <p className="text-sm text-soft">{copy.captcha}</p>
+            <div className="mt-4">
+              <TurnstileField action="upload" onToken={setToken} resetKey={resetKey} />
             </div>
-            <p id={`${formId}-captcha`} className="mt-4 flex justify-center gap-2 select-none">
-              {(question || "•••").split("").map((glyph, index) =>
-                glyph === " " ? (
-                  <span key={`gap-${index}`} className="w-2" />
-                ) : (
-                  <span
-                    key={`${glyph}-${index}`}
-                    className="inline-grid h-12 w-9 place-items-center rounded-lg border border-white/10 bg-[#161616] text-xl font-semibold text-white"
-                    style={{ transform: `rotate(${index % 2 === 0 ? -6 : 5}deg)` }}
-                  >
-                    {glyph}
-                  </span>
-                ),
-              )}
-            </p>
-            <label className="mt-4 block">
-              <span className="sr-only">{copy.captcha}</span>
-              <input
-                value={answer}
-                onChange={(event) => setAnswer(event.target.value)}
-                inputMode="numeric"
-                autoComplete="off"
-                placeholder={copy.captchaPlaceholder}
-                aria-describedby={`${formId}-captcha`}
-                className={inputClass}
-                required
-              />
-            </label>
           </div>
 
           {error ? (

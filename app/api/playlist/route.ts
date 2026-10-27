@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { clientIp } from "@/lib/client-ip";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 export const dynamic = "force-dynamic";
 
@@ -42,5 +44,15 @@ export async function POST(request: Request) {
   if (raw.length > MAX_BODY) {
     return NextResponse.json({ error: "file" }, { status: 413 });
   }
-  return forward(raw);
+  let body: Record<string, unknown>;
+  try {
+    body = JSON.parse(raw) as Record<string, unknown>;
+  } catch {
+    return NextResponse.json({ error: "save" }, { status: 400 });
+  }
+  body.remoteip = clientIp(request);
+  if (!(await verifyTurnstile(body.token, "upload", String(body.remoteip)))) {
+    return NextResponse.json({ error: "captcha" }, { status: 403 });
+  }
+  return forward(JSON.stringify(body));
 }

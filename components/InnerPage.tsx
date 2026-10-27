@@ -4,6 +4,12 @@ import { ButtonLink } from "@/components/Button";
 import { useI18n } from "@/lib/i18n";
 import { siteConfig, type PageId } from "@/lib/site";
 
+const legalPages = [
+  { id: "terms", href: "/termos" },
+  { id: "privacy", href: "/privacidade" },
+  { id: "cookies", href: "/cookies" },
+] as const;
+
 export function InnerPage({ page }: { page: PageId }) {
   const { t } = useI18n();
   const data = t.pages[page];
@@ -18,6 +24,24 @@ export function InnerPage({ page }: { page: PageId }) {
           {data.title}
         </h1>
         <p className="mt-5 text-lg leading-relaxed text-soft">{data.lead}</p>
+        {data.updated ? <p className="mt-3 text-sm text-muted">{data.updated}</p> : null}
+        {data.sections?.length ? (
+          <div className="mt-10 space-y-8">
+            {data.sections.map((section) => (
+              <section key={section.title}>
+                <h2 className="text-xl font-semibold text-white">{section.title}</h2>
+                <div className="mt-3 space-y-3">
+                  {section.paragraphs.map((paragraph) => (
+                    <p key={paragraph} className="text-sm leading-relaxed text-soft">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        ) : null}
+        {data.points.length ? (
         <ol className="mt-10 space-y-3">
           {data.points.map((point, index) => (
             <li
@@ -31,10 +55,26 @@ export function InnerPage({ page }: { page: PageId }) {
             </li>
           ))}
         </ol>
+        ) : null}
         {data.action ? (
           <ButtonLink href={data.action.href} variant="secondary" className="mt-8 w-full sm:w-auto">
             {data.action.label}
           </ButtonLink>
+        ) : null}
+        {legalPages.some((item) => item.id === page) ? (
+          <nav className="mt-10 flex flex-wrap gap-x-5 gap-y-2">
+            {legalPages
+              .filter((item) => item.id !== page)
+              .map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className="text-sm text-white underline decoration-white/30 underline-offset-4 hover:decoration-accent-bright"
+                >
+                  {t.links[item.id]}
+                </a>
+              ))}
+          </nav>
         ) : null}
         <p className="mt-8 text-sm text-muted">
           {t.supportLabel}{" "}

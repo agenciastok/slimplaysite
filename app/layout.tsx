@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
+import { CookieNotice } from "@/components/CookieNotice";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 import { LanguageProvider } from "@/lib/i18n";
@@ -49,6 +50,7 @@ export default function RootLayout({
             <Navbar />
             <div className="flex-1">{children}</div>
             <Footer />
+            <CookieNotice />
           </div>
         </LanguageProvider>
       </body>

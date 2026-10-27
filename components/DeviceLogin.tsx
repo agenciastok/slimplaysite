@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { TurnstileField } from "@/components/TurnstileField";
 import { useI18n } from "@/lib/i18n";
 import type { ManageError } from "@/lib/managed-list";
 
@@ -13,35 +14,13 @@ export function DeviceLogin() {
   const copy = t.manage;
   const form = t.uploadForm;
   const router = useRouter();
-  const formId = useId();
   const [mac, setMac] = useState("");
   const [deviceKey, setDeviceKey] = useState("");
-  const [question, setQuestion] = useState("");
   const [token, setToken] = useState("");
-  const [answer, setAnswer] = useState("");
+  const [resetKey, setResetKey] = useState(0);
   const [error, setError] = useState<ManageError | null>(null);
   const [saving, setSaving] = useState(false);
   const [showKey, setShowKey] = useState(false);
-
-  async function loadCaptcha() {
-    setAnswer("");
-    try {
-      const response = await fetch("/api/manage/captcha", { cache: "no-store" });
-      const data = (await response.json()) as { question?: string; token?: string; error?: ManageError };
-      if (!response.ok || !data.question || !data.token) {
-        setError(data.error ?? "config");
-        return;
-      }
-      setQuestion(data.question);
-      setToken(data.token);
-    } catch {
-      setError("config");
-    }
-  }
-
-  useEffect(() => {
-    void loadCaptcha();
-  }, []);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -52,12 +31,12 @@ export function DeviceLogin() {
       const response = await fetch("/api/manage/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mac, deviceKey, token, answer }),
+        body: JSON.stringify({ mac, deviceKey, token }),
       });
       const data = (await response.json().catch(() => null)) as { ok?: boolean; error?: ManageError } | null;
       if (!response.ok || !data?.ok) {
         setError(data?.error ?? "credentials");
-        void loadCaptcha();
+        setResetKey((value) => value + 1);
         return;
       }
       router.replace("/gerenciar");
@@ -116,44 +95,10 @@ export function DeviceLogin() {
           </div>
 
           <div className="mt-6 rounded-2xl border border-white/10 bg-black/30 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm text-soft">{form.captcha}</p>
-              <button
-                type="button"
-                onClick={() => void loadCaptcha()}
-                className="text-xs font-semibold uppercase tracking-[0.12em] text-muted hover:text-white"
-              >
-                {form.refreshCaptcha}
-              </button>
+            <p className="text-sm text-soft">{form.captcha}</p>
+            <div className="mt-4">
+              <TurnstileField action="login" onToken={setToken} resetKey={resetKey} />
             </div>
-            <p id={`${formId}-captcha`} className="mt-4 flex justify-center gap-2 select-none">
-              {(question || "•••").split("").map((glyph, index) =>
-                glyph === " " ? (
-                  <span key={`gap-${index}`} className="w-2" />
-                ) : (
-                  <span
-                    key={`${glyph}-${index}`}
-                    className="inline-grid h-12 w-9 place-items-center rounded-lg border border-white/10 bg-[#161616] text-xl font-semibold text-white"
-                    style={{ transform: `rotate(${index % 2 === 0 ? -6 : 5}deg)` }}
-                  >
-                    {glyph}
-                  </span>
-                ),
-              )}
-            </p>
-            <label className="mt-4 block">
-              <span className="sr-only">{form.captcha}</span>
-              <input
-                value={answer}
-                onChange={(event) => setAnswer(event.target.value)}
-                inputMode="numeric"
-                autoComplete="off"
-                placeholder={form.captchaPlaceholder}
-                aria-describedby={`${formId}-captcha`}
-                className={inputClass}
-                required
-              />
-            </label>
           </div>
 
           {error ? (
