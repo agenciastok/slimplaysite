@@ -16,23 +16,20 @@ export async function POST(request: Request) {
   const { status, data } = await callActivation({
     action: "checkout",
     mac: body.mac,
-    name: body.name,
-    email: body.email,
-    cpf: body.cpf,
-    plan: body.plan,
-    billing: body.billing,
     token: body.token,
     remoteip: clientIp(request),
   });
   if (!data.id) return NextResponse.json({ error: data.error ?? "save" }, { status: status || 400 });
   return NextResponse.json({
     id: data.id,
-    billingType: data.billingType,
+    mac: data.mac ?? "",
+    billingType: "pix",
     status: data.status,
     amountCents: data.amountCents,
     days: data.days,
-    invoiceUrl: data.invoiceUrl ?? "",
     pixPayload: data.pixPayload ?? "",
     pixQr: data.pixQr ?? "",
+    pixExpiresAt: data.pixExpiresAt ?? "",
+    history: [],
   });
 }

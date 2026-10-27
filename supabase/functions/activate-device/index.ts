@@ -1,4 +1,4 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,7 +6,11 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-type Billing = "pix" | "credit_card";
+const ANNUAL_CODE = "365";
+const ANNUAL_DAYS = 365;
+const ANNUAL_CENTS = 1200;
+
+type Gateway = { key: string; sandbox: boolean; document: string };
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -19,78 +23,21 @@ function fail(error: string, status = 400) {
   return json({ error }, status);
 }
 
-function adminKey() {
-  return Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+function asaasBase(sandbox: boolean) {
+  return sandbox ? "https://api-sandbox.asaas.com/v3" : "https://api.asaas.com/v3";
 }
 
-function asaasKey() {
-  return Deno.env.get("ASAAS_API_KEY") ?? "";
-}
-
-function gatewayReady() {
-  return Boolean(asaasKey() && Deno.env.get("ASAAS_WEBHOOK_TOKEN"));
-}
-
-function asaasBase() {
-  return Deno.env.get("ASAAS_SANDBOX") === "false" ? "https://api.asaas.com/v3" : "https://api-sandbox.asaas.com/v3";
-}
-
-async function sign(secret: string, value: string) {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(value));
-  return [...new Uint8Array(signature)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
-}
-
-function safeEqual(left: string, right: string) {
-  if (left.length !== right.length) return false;
-  let diff = 0;
-  for (let index = 0; index < left.length; index += 1) {
-    diff |= left.charCodeAt(index) ^ right.charCodeAt(index);
-  }
-  return diff === 0;
+async function loadGateway(admin: SupabaseClient): Promise<Gateway | null> {
+  const { data } = await admin.from("payment_gateway").select("api_key, webhook_token, sandbox, document").eq("id", 1).maybeSingle();
+  if (!data?.api_key || !data.webhook_token) return null;
+  const document = String(data.document ?? "").replace(/\D/g, "");
+  return { key: data.api_key, sandbox: data.sandbox === true, document };
 }
 
 function normalizeMac(value: string) {
   const hex = value.trim().toUpperCase().replace(/[\s._:-]/g, "");
   if (!/^[0-9A-F]{12}$/.test(hex)) return null;
   return hex.match(/.{2}/g)!.join(":");
-}
-
-function onlyDigits(value: string) {
-  return value.replace(/\D/g, "");
-}
-
-function cpfDigits(value: string) {
-  const digits = onlyDigits(value);
-  if (digits.length !== 11 || /^(\d)\1{10}$/.test(digits)) return null;
-  const check = (length: number) => {
-    let sum = 0;
-    for (let index = 0; index < length; index += 1) sum += Number(digits[index]) * (length + 1 - index);
-    const mod = (sum * 10) % 11;
-    return mod === 10 ? 0 : mod;
-  };
-  if (check(9) !== Number(digits[9]) || check(10) !== Number(digits[10])) return null;
-  return digits;
-}
-
-function cleanName(value: string) {
-  const name = value.trim().replace(/\s+/g, " ");
-  if (name.length < 3 || name.length > 120) return null;
-  if (/[\u0000-\u001f]/.test(name)) return null;
-  return name;
-}
-
-function cleanEmail(value: string) {
-  const email = value.trim().toLowerCase();
-  if (email.length < 6 || email.length > 160) return null;
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return null;
-  return email;
 }
 
 function dueDate() {
@@ -102,62 +49,75 @@ function dueDate() {
   }).format(new Date());
 }
 
-async function asaas(path: string, init: RequestInit = {}) {
-  const response = await fetch(`${asaasBase()}${path}`, {
+type AsaasData = {
+  id?: string;
+  invoiceUrl?: string;
+  encodedImage?: string;
+  payload?: string;
+  expirationDate?: string;
+  errors?: Array<{ code?: string; description?: string }>;
+  data?: Array<{ id?: string }>;
+};
+
+async function asaas(gateway: Gateway, path: string, init: RequestInit = {}) {
+  const response = await fetch(`${asaasBase(gateway.sandbox)}${path}`, {
     ...init,
     headers: {
-      access_token: asaasKey(),
+      access_token: gateway.key,
       accept: "application/json",
       "Content-Type": "application/json",
       ...(init.headers ?? {}),
     },
   });
-  const data = (await response.json().catch(() => null)) as {
-    id?: string;
-    invoiceUrl?: string;
-    encodedImage?: string;
-    payload?: string;
-    errors?: Array<{ code?: string; description?: string }>;
-    data?: Array<{ id?: string }>;
-  } | null;
+  const data = (await response.json().catch(() => null)) as AsaasData | null;
   return { ok: response.ok, data };
 }
 
-function asaasError(data: { errors?: Array<{ code?: string; description?: string }> } | null) {
-  const blob = `${data?.errors?.[0]?.code ?? ""} ${data?.errors?.[0]?.description ?? ""}`.toLowerCase();
-  if (blob.includes("cpf")) return "cpf";
-  if (blob.includes("email")) return "email";
-  return "save";
+async function pixCustomer(gateway: Gateway) {
+  if (!gateway.document) return "";
+  const profile = {
+    name: "Slim Play",
+    cpfCnpj: gateway.document,
+    notificationDisabled: true,
+    externalReference: "slimplay-pix",
+  };
+  const listed = await asaas(gateway, "/customers?externalReference=slimplay-pix&limit=1");
+  const existing = listed.data?.data?.[0]?.id ?? "";
+  if (existing) {
+    await asaas(gateway, `/customers/${existing}`, { method: "PUT", body: JSON.stringify(profile) });
+    return existing;
+  }
+  const created = await asaas(gateway, "/customers", { method: "POST", body: JSON.stringify(profile) });
+  return created.ok ? created.data?.id ?? "" : "";
 }
 
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (request.method !== "POST") return fail("save", 405);
 
-  const secret = adminKey();
   const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  const secret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
   if (!secret || !supabaseUrl) return fail("config", 500);
 
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   if (!body) return fail("save");
   const action = typeof body.action === "string" ? body.action : "";
   const admin = createClient(supabaseUrl, secret, { auth: { persistSession: false } });
+  const gateway = await loadGateway(admin);
 
   if (action === "plans") {
     const { data, error } = await admin
       .from("activation_plans")
       .select("code, days, price_cents")
+      .eq("code", ANNUAL_CODE)
       .eq("active", true)
-      .gt("price_cents", 0)
-      .order("sort_order", { ascending: true });
+      .eq("days", ANNUAL_DAYS)
+      .eq("price_cents", ANNUAL_CENTS)
+      .maybeSingle();
     if (error) return fail("config", 500);
     return json({
-      configured: gatewayReady(),
-      plans: (data ?? []).map((plan) => ({
-        code: plan.code,
-        days: plan.days,
-        priceCents: plan.price_cents,
-      })),
+      configured: Boolean(gateway?.document && data),
+      plans: data ? [{ code: data.code, days: data.days, priceCents: data.price_cents }] : [],
     });
   }
 
@@ -168,12 +128,19 @@ Deno.serve(async (request) => {
     if (!/^[0-9a-f-]{36}$/i.test(id)) return fail("save");
     const { data, error } = await admin
       .from("activation_payments")
-      .select("id, status, billing_type, amount_cents, days, invoice_url, pix_payload, pix_qr")
+      .select("id, mac_address, status, billing_type, amount_cents, days, invoice_url, pix_payload, pix_qr, pix_expires_at")
       .eq("id", id)
       .maybeSingle();
     if (error || !data) return fail("save", 404);
+    const { data: history } = await admin
+      .from("activation_payments")
+      .select("id, status, amount_cents, created_at")
+      .eq("mac_address", data.mac_address)
+      .order("created_at", { ascending: false })
+      .limit(8);
     return json({
       id: data.id,
+      mac: data.mac_address,
       status: data.status,
       billingType: data.billing_type,
       amountCents: data.amount_cents,
@@ -181,30 +148,37 @@ Deno.serve(async (request) => {
       invoiceUrl: data.invoice_url ?? "",
       pixPayload: data.status === "pending" ? data.pix_payload ?? "" : "",
       pixQr: data.status === "pending" ? data.pix_qr ?? "" : "",
+      pixExpiresAt: data.pix_expires_at ?? "",
+      history: (history ?? []).map((item) => ({
+        id: item.id,
+        status: item.status,
+        amountCents: item.amount_cents,
+        createdAt: item.created_at,
+      })),
     });
   }
 
   if (action !== "checkout") return fail("save");
-  if (!gatewayReady()) return fail("unavailable", 503);
+  if (!gateway?.document) return fail("unavailable", 503);
 
   const mac = normalizeMac(typeof body.mac === "string" ? body.mac : "");
   if (!mac) return fail("mac");
-  const name = cleanName(typeof body.name === "string" ? body.name : "");
-  if (!name) return fail("name");
-  const email = cleanEmail(typeof body.email === "string" ? body.email : "");
-  if (!email) return fail("email");
-  const cpf = cpfDigits(typeof body.cpf === "string" ? body.cpf : "");
-  if (!cpf) return fail("cpf");
-  const billing: Billing | null = body.billing === "pix" || body.billing === "credit_card" ? body.billing : null;
-  if (!billing) return fail("plan");
-  const planCode = typeof body.plan === "string" ? body.plan : "";
+  const { data: device, error: deviceError } = await admin
+    .from("device_macs")
+    .select("mac_address")
+    .eq("mac_address", mac)
+    .maybeSingle();
+  if (deviceError) return fail("save", 500);
+  if (!device) return fail("unknown");
 
   const { data: plan, error: planError } = await admin
     .from("activation_plans")
     .select("code, days, price_cents, active")
-    .eq("code", planCode)
+    .eq("code", ANNUAL_CODE)
     .maybeSingle();
-  if (planError || !plan || !plan.active || plan.price_cents <= 0) return fail("plan");
+  if (planError || !plan || !plan.active || plan.days !== ANNUAL_DAYS || plan.price_cents !== ANNUAL_CENTS) {
+    return fail("unavailable", 503);
+  }
 
   const { data: created, error: insertError } = await admin
     .from("activation_payments")
@@ -213,7 +187,7 @@ Deno.serve(async (request) => {
       plan_code: plan.code,
       days: plan.days,
       amount_cents: plan.price_cents,
-      billing_type: billing,
+      billing_type: "pix",
       status: "pending",
     })
     .select("id")
@@ -223,49 +197,36 @@ Deno.serve(async (request) => {
   const paymentId = created.id as string;
   const cancel = () => admin.from("activation_payments").update({ status: "cancelled" }).eq("id", paymentId).eq("status", "pending");
 
-  const createdCustomer = await asaas("/customers", {
-    method: "POST",
-    body: JSON.stringify({ name, email, cpfCnpj: cpf }),
-  });
-  let customerId = createdCustomer.data?.id ?? "";
-  if (!createdCustomer.ok || !customerId) {
-    const found = await asaas(`/customers?cpfCnpj=${cpf}`);
-    customerId = found.data?.data?.[0]?.id ?? "";
-    if (!customerId) {
-      await cancel();
-      return fail(asaasError(createdCustomer.data));
-    }
+  const customerId = await pixCustomer(gateway);
+  if (!customerId) {
+    await cancel();
+    return fail("config", 500);
   }
 
-  const charged = await asaas("/payments", {
+  const charged = await asaas(gateway, "/payments", {
     method: "POST",
     body: JSON.stringify({
       customer: customerId,
-      billingType: billing === "pix" ? "PIX" : "CREDIT_CARD",
+      billingType: "PIX",
       value: Number((plan.price_cents / 100).toFixed(2)),
       dueDate: dueDate(),
-      description: `Licenca Slim Play — ${plan.days} dias`,
+      description: `Licenca Slim Play — 1 ano — ${mac}`,
       externalReference: paymentId,
     }),
   });
   const asaasPaymentId = charged.data?.id ?? "";
-  const invoiceUrl = charged.data?.invoiceUrl ?? "";
   if (!charged.ok || !asaasPaymentId) {
     await cancel();
-    return fail(asaasError(charged.data));
+    const blob = `${charged.data?.errors?.[0]?.code ?? ""} ${charged.data?.errors?.[0]?.description ?? ""}`.toLowerCase();
+    return fail(blob.includes("cpf") || blob.includes("cnpj") ? "config" : "save", 502);
   }
 
-  let pixPayload = "";
-  let pixQr = "";
-  if (billing === "pix") {
-    const qr = await asaas(`/payments/${asaasPaymentId}/pixQrCode`);
-    pixPayload = qr.data?.payload ?? "";
-    pixQr = qr.data?.encodedImage ?? "";
-    if (!qr.ok || !pixPayload) {
-      await cancel();
-      return fail("save", 502);
-    }
-  } else if (!invoiceUrl) {
+  const qr = await asaas(gateway, `/payments/${asaasPaymentId}/pixQrCode`);
+  const pixPayload = qr.data?.payload ?? "";
+  const pixQr = qr.data?.encodedImage ?? "";
+  const pixExpiresAt = qr.data?.expirationDate ?? null;
+  if (!qr.ok || !pixPayload) {
+    await asaas(gateway, `/payments/${asaasPaymentId}`, { method: "DELETE" });
     await cancel();
     return fail("save", 502);
   }
@@ -275,24 +236,27 @@ Deno.serve(async (request) => {
     .update({
       asaas_payment_id: asaasPaymentId,
       asaas_customer_id: customerId,
-      invoice_url: invoiceUrl,
       pix_payload: pixPayload,
       pix_qr: pixQr,
+      pix_expires_at: pixExpiresAt,
     })
     .eq("id", paymentId);
   if (updateError) {
+    await asaas(gateway, `/payments/${asaasPaymentId}`, { method: "DELETE" });
     await cancel();
     return fail("save", 500);
   }
 
   return json({
     id: paymentId,
-    billingType: billing,
+    mac,
+    billingType: "pix",
     status: "pending",
     amountCents: plan.price_cents,
     days: plan.days,
-    invoiceUrl,
+    invoiceUrl: "",
     pixPayload,
     pixQr,
+    pixExpiresAt: pixExpiresAt ?? "",
   });
 });

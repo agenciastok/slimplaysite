@@ -1,16 +1,26 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import { Logo } from "@/components/Logo";
 import { TurnstileField } from "@/components/TurnstileField";
 import { useI18n } from "@/lib/i18n";
-import { previewPlans, type ActivationBilling, type ActivationCharge, type ActivationError, type ActivationPlan } from "@/lib/activation";
+import { previewPlans, type ActivationCharge, type ActivationError, type ActivationPayment, type ActivationPlan } from "@/lib/activation";
 import { siteConfig } from "@/lib/site";
 
 const inputClass =
-  "w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white transition-colors placeholder:text-muted focus:border-white/40 disabled:cursor-not-allowed disabled:opacity-60";
+  "w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-center font-mono text-xs break-all text-white";
 
 function money(cents: number, locale: string) {
   return new Intl.NumberFormat(locale, { style: "currency", currency: "BRL" }).format(cents / 100);
+}
+
+function remaining(iso: string) {
+  const ms = new Date(iso).getTime() - Date.now();
+  if (!Number.isFinite(ms) || ms <= 0) return "00:00";
+  const hours = Math.floor(ms / 3_600_000);
+  const minutes = Math.floor((ms % 3_600_000) / 60_000);
+  const seconds = Math.floor((ms % 60_000) / 1000);
+  return `${hours}h ${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
 export function ActivationCheckout() {
@@ -19,18 +29,15 @@ export function ActivationCheckout() {
   const page = t.pages.activation;
   const [plans, setPlans] = useState<ActivationPlan[]>(previewPlans);
   const [ready, setReady] = useState(false);
-  const [plan, setPlan] = useState("30");
-  const [billing, setBilling] = useState<ActivationBilling>("pix");
   const [mac, setMac] = useState("");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [cpf, setCpf] = useState("");
   const [token, setToken] = useState("");
   const [resetKey, setResetKey] = useState(0);
   const [error, setError] = useState<ActivationError | null>(null);
   const [saving, setSaving] = useState(false);
   const [charge, setCharge] = useState<ActivationCharge | null>(null);
   const [copied, setCopied] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [clock, setClock] = useState(Date.now());
 
   useEffect(() => {
     let active = true;
@@ -41,9 +48,7 @@ export function ActivationCheckout() {
         if (!active) return;
         const next = Array.isArray(data.plans) && data.plans.length > 0 ? data.plans : previewPlans;
         setPlans(next);
-        setPlan(next[0]?.code ?? "30");
-        const open = Boolean(data.configured && data.plans && data.plans.length > 0);
-        setReady(open);
+        setReady(Boolean(data.configured && next.length > 0 && next[0].priceCents === 1200));
       } catch {
         if (active) setReady(false);
       }
@@ -55,19 +60,32 @@ export function ActivationCheckout() {
 
   useEffect(() => {
     if (!charge || charge.status !== "pending") return;
-    const timer = window.setInterval(async () => {
+    const timer = window.setInterval(() => setClock(Date.now()), 1000);
+    const poll = window.setInterval(async () => {
       try {
         const response = await fetch(`/api/activation/status?id=${charge.id}`, { cache: "no-store" });
-        const data = (await response.json()) as { status?: ActivationCharge["status"] };
-        if (data.status === "paid" || data.status === "refunded" || data.status === "cancelled") {
-          setCharge((current) => (current ? { ...current, status: data.status ?? current.status } : current));
-        }
+        const data = (await response.json()) as Partial<ActivationCharge> & { history?: ActivationPayment[] };
+        if (!data.status) return;
+        setCharge((current) =>
+          current
+            ? {
+                ...current,
+                status: data.status ?? current.status,
+                pixPayload: data.pixPayload ?? current.pixPayload,
+                pixQr: data.pixQr ?? current.pixQr,
+                history: data.history ?? current.history,
+              }
+            : current,
+        );
       } catch {
         return;
       }
     }, 4000);
-    return () => window.clearInterval(timer);
-  }, [charge]);
+    return () => {
+      window.clearInterval(timer);
+      window.clearInterval(poll);
+    };
+  }, [charge?.id, charge?.status]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -78,7 +96,7 @@ export function ActivationCheckout() {
       const response = await fetch("/api/activation/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mac, name, email, cpf, plan, billing, token }),
+        body: JSON.stringify({ mac, token }),
       });
       const data = (await response.json().catch(() => null)) as (ActivationCharge & { error?: ActivationError }) | null;
       if (!response.ok || !data?.id) {
@@ -86,7 +104,11 @@ export function ActivationCheckout() {
         setResetKey((value) => value + 1);
         return;
       }
-      setCharge(data);
+      setCharge({
+        ...data,
+        mac: data.mac || mac.trim().toUpperCase(),
+        history: [{ id: data.id, status: data.status, amountCents: data.amountCents, createdAt: new Date().toISOString() }],
+      });
     } catch {
       setError("save");
     } finally {
@@ -104,7 +126,10 @@ export function ActivationCheckout() {
     }
   }
 
+  const price = plans[0]?.priceCents ?? 1200;
   const qr = charge?.pixQr?.replace(/^data:image\/[a-z+]+;base64,/i, "") ?? "";
+  const countdown = charge?.pixExpiresAt ? remaining(charge.pixExpiresAt) : "";
+  void clock;
 
   return (
     <main id="conteudo" className="relative overflow-hidden">
@@ -114,121 +139,91 @@ export function ActivationCheckout() {
         <p className="mt-5 text-lg leading-relaxed text-soft">{page.lead}</p>
         <ol className="mt-10 space-y-3">
           {page.points.map((point, index) => (
-            <li
-              key={point}
-              className="flex gap-4 rounded-2xl border border-white/10 bg-card px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
-            >
+            <li key={point} className="flex gap-4 rounded-2xl border border-white/10 bg-card px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
               <span className="text-sm font-semibold text-accent-bright">{String(index + 1).padStart(2, "0")}</span>
               <span className="text-soft">{point}</span>
             </li>
           ))}
         </ol>
 
-        <p className="mt-8 text-sm leading-relaxed text-muted">{copy.notice}</p>
-
         {charge?.status === "paid" ? (
-          <p role="status" className="mt-6 rounded-2xl border border-white/10 bg-card px-5 py-4 text-soft">
-            {copy.paid}
-          </p>
+          <p role="status" className="mt-8 rounded-2xl border border-white/10 bg-card px-5 py-4 text-soft">{copy.paid}</p>
         ) : charge ? (
-          <section className="mt-6 rounded-3xl border border-white/10 bg-[#161616]/80 p-5 sm:p-7">
-            <p className="text-sm text-soft">{charge.status === "refunded" ? copy.refunded : copy.waiting}</p>
-            <p className="mt-3 text-2xl font-semibold text-white">{money(charge.amountCents, locale)}</p>
-            {charge.billingType === "pix" && qr ? (
-              <div className="mt-6">
-                <img
-                  src={`data:image/png;base64,${qr}`}
-                  alt={copy.pix}
-                  className="mx-auto h-56 w-56 rounded-2xl bg-white p-3"
-                />
-                <label className="mt-4 block">
-                  <span className="mb-2 block text-sm text-soft">{copy.pixCode}</span>
-                  <input readOnly value={charge.pixPayload} className={inputClass} />
-                </label>
-                <button
-                  type="button"
-                  onClick={() => void copyPix()}
-                  className="mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-full border border-white/75 px-6 py-3 text-[13px] font-semibold uppercase tracking-[0.14em] text-white hover:border-accent-bright"
-                >
-                  {copied ? copy.copied : copy.copy}
-                </button>
+          <section className="mx-auto mt-8 max-w-md rounded-3xl border border-white/10 bg-[#101010] px-5 py-8 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:px-8">
+            <Logo className="mx-auto h-16 w-16" />
+            <h2 className="mt-4 text-2xl font-semibold text-white">{copy.payTitle}</h2>
+            <p className="mt-3 text-4xl font-semibold text-white">{money(charge.amountCents || price, locale)}</p>
+            {countdown ? <p className="mt-2 text-sm text-soft">{copy.expires.replace("{time}", countdown)}</p> : null}
+            {charge.status === "refunded" ? <p className="mt-4 text-sm text-accent-bright">{copy.refunded}</p> : null}
+            {qr ? (
+              <img src={`data:image/png;base64,${qr}`} alt={copy.pixCode} className="mx-auto mt-6 h-56 w-56 rounded-2xl bg-white p-3" />
+            ) : null}
+            {charge.pixPayload ? (
+              <p className={`${inputClass} mt-5 px-3 py-3`}>{charge.pixPayload}</p>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => void copyPix()}
+              className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-accent px-6 py-3 text-base font-semibold text-white hover:bg-accent-bright"
+            >
+              {copied ? copy.copied : copy.copy}
+            </button>
+            <p className="mt-5 text-sm leading-relaxed text-soft">
+              {copy.released}
+              <span className="mt-1 block font-semibold text-white">{charge.mac}</span>
+            </p>
+            <button
+              type="button"
+              onClick={() => setHistoryOpen((open) => !open)}
+              className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-white/15 px-6 py-3 text-sm font-semibold text-white hover:border-white/40"
+            >
+              {copy.history}
+            </button>
+            {historyOpen ? (
+              <div className="mt-4 text-left">
+                <h3 className="text-sm font-semibold text-white">{copy.historyTitle}</h3>
+                {charge.history.length === 0 ? (
+                  <p className="mt-2 text-sm text-muted">{copy.emptyHistory}</p>
+                ) : (
+                  <ul className="mt-2 space-y-2">
+                    {charge.history.map((item) => (
+                      <li key={item.id} className="flex items-center justify-between rounded-xl border border-white/10 px-3 py-2 text-sm">
+                        <span className="text-soft">{copy.statuses[item.status]}</span>
+                        <span className="text-white">{money(item.amountCents, locale)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             ) : null}
-            {charge.billingType === "credit_card" && charge.invoiceUrl ? (
-              <a
-                href={charge.invoiceUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-accent px-6 py-3 text-[13px] font-semibold uppercase tracking-[0.14em] text-white hover:bg-accent-bright"
-              >
-                {copy.card}
-              </a>
-            ) : null}
+            <div className="mt-6 rounded-2xl border border-white/10 bg-black/30 px-4 py-4 text-left">
+              <h3 className="text-sm font-semibold text-white">{copy.supportTitle}</h3>
+              <p className="mt-2 text-sm text-soft">
+                {copy.supportLead}{" "}
+                <a href={siteConfig.telegramUrl} target="_blank" rel="noreferrer" className="font-semibold text-white underline decoration-white/30 underline-offset-4">
+                  Telegram
+                </a>
+              </p>
+              <p className="mt-3 text-sm text-accent-bright">{copy.attention}</p>
+            </div>
           </section>
         ) : (
-          <form
-            onSubmit={onSubmit}
-            className="mt-6 rounded-3xl border border-white/10 bg-[#161616]/80 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-7"
-          >
-            <fieldset disabled={!ready} className="space-y-4">
-              <legend className="mb-4 text-sm font-semibold uppercase tracking-[0.14em] text-white">{copy.plan}</legend>
-              <div className="grid gap-3 sm:grid-cols-3">
-                {plans.map((item) => (
-                  <label
-                    key={item.code}
-                    className={`cursor-pointer rounded-2xl border px-4 py-4 ${plan === item.code ? "border-accent-bright" : "border-white/10"}`}
-                  >
-                    <input
-                      type="radio"
-                      name="plan"
-                      value={item.code}
-                      checked={plan === item.code}
-                      onChange={() => setPlan(item.code)}
-                      className="sr-only"
-                    />
-                    <span className="block text-sm text-white">{copy.days.replace("{days}", String(item.days))}</span>
-                    <span className="mt-1 block text-sm text-muted">
-                      {item.priceCents > 0 ? money(item.priceCents, locale) : copy.priceLater}
-                    </span>
-                  </label>
-                ))}
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {(["pix", "credit_card"] as const).map((method) => (
-                  <label
-                    key={method}
-                    className={`cursor-pointer rounded-2xl border px-4 py-3 text-sm text-white ${billing === method ? "border-accent-bright" : "border-white/10"}`}
-                  >
-                    <input
-                      type="radio"
-                      name="billing"
-                      value={method}
-                      checked={billing === method}
-                      onChange={() => setBilling(method)}
-                      className="sr-only"
-                    />
-                    {method === "pix" ? copy.pix : copy.card}
-                  </label>
-                ))}
-              </div>
-              <label className="block">
-                <span className="mb-2 block text-sm text-soft">{copy.mac}</span>
-                <input value={mac} onChange={(event) => setMac(event.target.value)} placeholder="AA:BB:CC:DD:EE:FF" autoComplete="off" spellCheck={false} className={inputClass} required />
-              </label>
-              <label className="block">
-                <span className="mb-2 block text-sm text-soft">{copy.name}</span>
-                <input value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" className={inputClass} required />
-              </label>
-              <label className="block">
-                <span className="mb-2 block text-sm text-soft">{copy.email}</span>
-                <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" autoComplete="email" className={inputClass} required />
-              </label>
-              <label className="block">
-                <span className="mb-2 block text-sm text-soft">{copy.cpf}</span>
-                <input value={cpf} onChange={(event) => setCpf(event.target.value)} inputMode="numeric" autoComplete="off" className={inputClass} required />
-              </label>
-            </fieldset>
-
+          <form onSubmit={onSubmit} className="mx-auto mt-8 max-w-md rounded-3xl border border-white/10 bg-[#161616]/80 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-7">
+            <p className="text-sm leading-relaxed text-muted">{copy.notice}</p>
+            <p className="mt-4 text-3xl font-semibold text-white">{money(price, locale)}</p>
+            <label className="mt-6 block">
+              <span className="mb-2 block text-sm text-soft">{copy.mac}</span>
+              <input
+                value={mac}
+                onChange={(event) => setMac(event.target.value)}
+                placeholder="AA:BB:CC:DD:EE:FF"
+                autoComplete="off"
+                spellCheck={false}
+                disabled={!ready}
+                className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-muted focus:border-white/40 disabled:cursor-not-allowed disabled:opacity-60"
+                required
+              />
+            </label>
             {ready ? (
               <div className="mt-6 rounded-2xl border border-white/10 bg-black/30 p-4">
                 <p className="text-sm text-soft">{t.uploadForm.captcha}</p>
@@ -237,29 +232,16 @@ export function ActivationCheckout() {
                 </div>
               </div>
             ) : null}
-
-            {error ? (
-              <p role="alert" className="mt-4 text-sm text-accent-bright">
-                {copy.errors[error] ?? copy.errors.save}
-              </p>
-            ) : null}
-
+            {error ? <p role="alert" className="mt-4 text-sm text-accent-bright">{copy.errors[error] ?? copy.errors.save}</p> : null}
             <button
               type="submit"
               disabled={!ready || saving || !token}
-              className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-accent px-6 py-3 text-[13px] font-semibold uppercase tracking-[0.14em] text-white shadow-[0_10px_30px_rgba(229,9,20,0.35)] transition-colors hover:bg-accent-bright disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-accent px-6 py-3 text-[13px] font-semibold uppercase tracking-[0.14em] text-white shadow-[0_10px_30px_rgba(229,9,20,0.35)] hover:bg-accent-bright disabled:cursor-not-allowed disabled:opacity-60"
             >
               {saving ? copy.paying : copy.pay}
             </button>
           </form>
         )}
-
-        <p className="mt-8 text-sm text-muted">
-          {t.supportLabel}{" "}
-          <a href={`mailto:${siteConfig.email}`} className="text-white underline decoration-white/30 underline-offset-4 hover:decoration-accent-bright">
-            {siteConfig.email}
-          </a>
-        </p>
       </div>
     </main>
   );

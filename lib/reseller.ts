@@ -18,7 +18,8 @@ export type ResellerError =
   | "phone"
   | "password"
   | "save"
-  | "config";
+  | "config"
+  | "unavailable";
 
 export type ResellerDashboard = {
   name: string;

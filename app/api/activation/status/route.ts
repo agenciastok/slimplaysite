@@ -10,12 +10,14 @@ export async function GET(request: Request) {
   if (!data.id) return NextResponse.json({ error: data.error ?? "save" }, { status: status || 404 });
   return NextResponse.json({
     id: data.id,
+    mac: data.mac ?? "",
     status: data.status,
-    billingType: data.billingType,
+    billingType: "pix",
     amountCents: data.amountCents,
     days: data.days,
-    invoiceUrl: data.invoiceUrl ?? "",
     pixPayload: data.pixPayload ?? "",
     pixQr: data.pixQr ?? "",
+    pixExpiresAt: data.pixExpiresAt ?? "",
+    history: Array.isArray(data.history) ? data.history : [],
   });
 }

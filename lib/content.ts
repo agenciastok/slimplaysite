@@ -140,27 +140,26 @@ export type Dictionary = {
   };
   activationCheckout: {
     notice: string;
-    plan: string;
-    days: string;
-    priceLater: string;
-    pix: string;
-    card: string;
     mac: string;
-    name: string;
-    email: string;
-    cpf: string;
     pay: string;
     paying: string;
+    payTitle: string;
+    expires: string;
+    released: string;
     waiting: string;
     paid: string;
     refunded: string;
     pixCode: string;
     copy: string;
     copied: string;
-    errors: Record<
-      "mac" | "name" | "email" | "cpf" | "plan" | "captcha" | "save" | "unavailable" | "config",
-      string
-    >;
+    history: string;
+    historyTitle: string;
+    emptyHistory: string;
+    supportTitle: string;
+    supportLead: string;
+    attention: string;
+    statuses: Record<"pending" | "paid" | "refunded" | "cancelled", string>;
+    errors: Record<"mac" | "unknown" | "captcha" | "save" | "unavailable" | "config", string>;
   };
   resellerPanel: {
     loginTitle: string;
@@ -211,6 +210,11 @@ export type Dictionary = {
     buyLead: string;
     buyAction: string;
     buyLater: string;
+    buyPaid: string;
+    pixCode: string;
+    copy: string;
+    copied: string;
+    waiting: string;
     packCredits: string;
     priceLabel: string;
     close: string;
@@ -246,7 +250,8 @@ export type Dictionary = {
       | "phone"
       | "password"
       | "save"
-      | "config",
+      | "config"
+      | "unavailable",
       string
     >;
   };
@@ -485,11 +490,11 @@ export const dictionaries: Record<Locale, Dictionary> = {
       activation: {
         kicker: "Ativação",
         title: "Ative o seu app",
-        lead: "A ativação libera os recursos de reprodução no seu dispositivo. Você tem 7 dias para testar o player. Nenhum conteúdo ou playlist vem incluso.",
+        lead: "A ativação anual custa R$ 12,00 e libera o player por 1 ano. O pagamento é só por Pix, com o MAC do dispositivo. Nenhum conteúdo ou playlist vem incluso.",
         points: [
-          "O código libera o Slim Play, não um catálogo de canais ou arquivos.",
-          "O período gratuito dura 7 dias.",
-          "Depois do teste, a licença segue apenas o plano do aplicativo.",
+          "Informe somente o MAC exibido no aplicativo.",
+          "O Pix de R$ 12,00 libera o Slim Play por 1 ano.",
+          "A licença não inclui canais, filmes ou séries.",
         ],
         action: { href: "/upload", label: "Upload de lista" },
       },
@@ -791,31 +796,29 @@ export const dictionaries: Record<Locale, Dictionary> = {
       },
     },
     activationCheckout: {
-      notice:
-        "PIX e cartão de crédito ficam disponíveis quando o gateway e os valores dos planos estiverem configurados na hospedagem. A cobrança libera só o player.",
-      plan: "Plano",
-      days: "{days} dias",
-      priceLater: "Valor na publicação",
-      pix: "PIX",
-      card: "Cartão de crédito",
+      notice: "Informe o MAC exibido no aplicativo. Se ele já estiver cadastrado, o Pix de R$ 12,00 libera o player por 1 ano.",
       mac: "MAC do dispositivo",
-      name: "Nome completo",
-      email: "E-mail",
-      cpf: "CPF",
-      pay: "Continuar para o pagamento",
-      paying: "Gerando cobrança...",
-      waiting: "Aguardando a confirmação do pagamento. A licença entra depois que o pagamento compensar.",
+      pay: "Gerar Pix",
+      paying: "Gerando Pix...",
+      payTitle: "Pague com Pix",
+      expires: "Expira em {time}",
+      released: "Após o pagamento, a ativação é liberada automaticamente para o MAC",
+      waiting: "Aguardando a confirmação do Pix.",
       paid: "Pagamento confirmado. O player foi ativado neste dispositivo.",
       refunded: "Este pagamento foi estornado.",
-      pixCode: "Código PIX",
-      copy: "Copiar código PIX",
+      pixCode: "Código Pix",
+      copy: "Copiar código Pix",
       copied: "Código copiado",
+      history: "Já paguei: ver histórico de compras",
+      historyTitle: "Histórico de compras",
+      emptyHistory: "Nenhum pagamento encontrado para este MAC.",
+      supportTitle: "Precisa de suporte com a ativação do MAC?",
+      supportLead: "Fale diretamente com a equipe Slim Play pelo Telegram.",
+      attention: "A ativação libera somente o aplicativo e não inclui conteúdo. Suporte para canais, filmes e séries deve ser feito diretamente com o seu fornecedor.",
+      statuses: { pending: "Pendente", paid: "Pago", refunded: "Estornado", cancelled: "Cancelado" },
       errors: {
         mac: "Informe o MAC do dispositivo no formato AA:BB:CC:DD:EE:FF.",
-        name: "Informe o nome completo.",
-        email: "Informe um e-mail válido.",
-        cpf: "Informe um CPF válido.",
-        plan: "Escolha um plano disponível.",
+        unknown: "Este MAC não está cadastrado. Abra o aplicativo nesse dispositivo e tente de novo.",
         captcha: "O desafio de segurança não confere. Tente de novo.",
         save: "Não foi possível gerar a cobrança. Tente novamente.",
         unavailable: "O pagamento ainda não está disponível.",
@@ -871,6 +874,11 @@ export const dictionaries: Record<Locale, Dictionary> = {
       buyLead: "Escolha um pacote de créditos (ativações).",
       buyAction: "Comprar",
       buyLater: "A compra dos créditos entra quando o site estiver hospedado e o pagamento for conectado.",
+      buyPaid: "Pagamento confirmado. Os créditos já estão na conta.",
+      pixCode: "Código Pix",
+      copy: "Copiar código Pix",
+      copied: "Código copiado",
+      waiting: "Aguardando a confirmação do Pix.",
       packCredits: "{count} Créditos",
       priceLabel: "VALOR EM REAL",
       close: "Fechar",
@@ -907,6 +915,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
         password: "A senha precisa ter pelo menos 8 caracteres.",
         save: "Não foi possível concluir. Tente novamente.",
         config: "O painel está indisponível no momento.",
+        unavailable: "O Pix ainda não está disponível.",
       },
     },
     notFound: {
@@ -1112,11 +1121,11 @@ export const dictionaries: Record<Locale, Dictionary> = {
       activation: {
         kicker: "Activation",
         title: "Activate your app",
-        lead: "Activation unlocks playback features on your device. You get 7 days to try the player. No content or playlist is included.",
+        lead: "The annual activation costs R$ 12.00 and unlocks the player for 1 year. Payment is Pix only, using the device MAC. No content or playlist is included.",
         points: [
-          "The code unlocks Slim Play, not a channel or file catalog.",
-          "The trial lasts 7 days on the activated device.",
-          "After the trial, the license covers the app plan only.",
+          "Enter only the MAC address shown in the app.",
+          "The R$ 12.00 Pix unlocks Slim Play for 1 year.",
+          "The license does not include channels, movies, or series.",
         ],
         action: { href: "/upload", label: "Upload list" },
       },
@@ -1418,31 +1427,29 @@ export const dictionaries: Record<Locale, Dictionary> = {
       },
     },
     activationCheckout: {
-      notice:
-        "PIX and credit card become available once the gateway and plan prices are configured at hosting. The charge unlocks the player only.",
-      plan: "Plan",
-      days: "{days} days",
-      priceLater: "Price at launch",
-      pix: "PIX",
-      card: "Credit card",
+      notice: "Enter the MAC shown in the app. If it is already registered, the R$ 12.00 Pix unlocks the player for 1 year.",
       mac: "Device MAC",
-      name: "Full name",
-      email: "Email",
-      cpf: "CPF",
-      pay: "Continue to payment",
-      paying: "Creating the charge...",
-      waiting: "Waiting for payment confirmation. The license starts after the payment clears.",
+      pay: "Generate Pix",
+      paying: "Generating Pix...",
+      payTitle: "Pay with Pix",
+      expires: "Expires in {time}",
+      released: "After payment, activation is released automatically for MAC",
+      waiting: "Waiting for the Pix confirmation.",
       paid: "Payment confirmed. The player is activated on this device.",
       refunded: "This payment was refunded.",
-      pixCode: "PIX code",
-      copy: "Copy PIX code",
+      pixCode: "Pix code",
+      copy: "Copy Pix code",
       copied: "Code copied",
+      history: "I already paid: view purchase history",
+      historyTitle: "Purchase history",
+      emptyHistory: "No payments found for this MAC.",
+      supportTitle: "Need help activating this MAC?",
+      supportLead: "Talk to the Slim Play team on Telegram.",
+      attention: "Activation unlocks the app only and does not include content. Support for channels, movies, and series goes to your provider.",
+      statuses: { pending: "Pending", paid: "Paid", refunded: "Refunded", cancelled: "Cancelled" },
       errors: {
         mac: "Enter the device MAC as AA:BB:CC:DD:EE:FF.",
-        name: "Enter the full name.",
-        email: "Enter a valid email.",
-        cpf: "Enter a valid CPF.",
-        plan: "Choose an available plan.",
+        unknown: "This MAC is not registered. Open the app on that device and try again.",
         captcha: "The security challenge does not match. Try again.",
         save: "The charge could not be created. Try again.",
         unavailable: "Payment is not available yet.",
@@ -1498,6 +1505,11 @@ export const dictionaries: Record<Locale, Dictionary> = {
       buyLead: "Choose a credit pack (activations).",
       buyAction: "Buy",
       buyLater: "Credit purchases open once the site is hosted and payment is connected.",
+      buyPaid: "Payment confirmed. The credits are in the account.",
+      pixCode: "Pix code",
+      copy: "Copy Pix code",
+      copied: "Code copied",
+      waiting: "Waiting for the Pix confirmation.",
       packCredits: "{count} credits",
       priceLabel: "PRICE IN BRL",
       close: "Close",
@@ -1534,6 +1546,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
         password: "The password must be at least 8 characters.",
         save: "Could not finish. Try again.",
         config: "The panel is unavailable right now.",
+        unavailable: "Pix is not available yet.",
       },
     },
     notFound: {

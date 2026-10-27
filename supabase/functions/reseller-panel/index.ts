@@ -185,6 +185,64 @@ async function refundCredit(admin: SupabaseClient, resellerId: string) {
   await admin.from("reseller_credit_moves").insert({ reseller_id: resellerId, delta: 1, reason: "refund" });
 }
 
+const CREDIT_PACKS: Record<number, number> = { 10: 10_000, 30: 24_000, 50: 35_000, 100: 60_000, 1000: 500_000 };
+
+type Gateway = { key: string; sandbox: boolean; document: string };
+
+async function loadGateway(admin: SupabaseClient): Promise<Gateway | null> {
+  const { data } = await admin.from("payment_gateway").select("api_key, webhook_token, sandbox, document").eq("id", 1).maybeSingle();
+  if (!data?.api_key || !data.webhook_token) return null;
+  return { key: data.api_key, sandbox: data.sandbox === true, document: String(data.document ?? "").replace(/\D/g, "") };
+}
+
+function dueDate() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+async function asaas(gateway: Gateway, path: string, init: RequestInit = {}) {
+  const base = gateway.sandbox ? "https://api-sandbox.asaas.com/v3" : "https://api.asaas.com/v3";
+  const response = await fetch(`${base}${path}`, {
+    ...init,
+    headers: {
+      access_token: gateway.key,
+      accept: "application/json",
+      "Content-Type": "application/json",
+      ...(init.headers ?? {}),
+    },
+  });
+  const data = (await response.json().catch(() => null)) as {
+    id?: string;
+    encodedImage?: string;
+    payload?: string;
+    expirationDate?: string;
+    data?: Array<{ id?: string }>;
+  } | null;
+  return { ok: response.ok, data };
+}
+
+async function pixCustomer(gateway: Gateway) {
+  if (!gateway.document) return "";
+  const profile = {
+    name: "Slim Play",
+    cpfCnpj: gateway.document,
+    notificationDisabled: true,
+    externalReference: "slimplay-pix",
+  };
+  const listed = await asaas(gateway, "/customers?externalReference=slimplay-pix&limit=1");
+  const existing = listed.data?.data?.[0]?.id ?? "";
+  if (existing) {
+    await asaas(gateway, `/customers/${existing}`, { method: "PUT", body: JSON.stringify(profile) });
+    return existing;
+  }
+  const created = await asaas(gateway, "/customers", { method: "POST", body: JSON.stringify(profile) });
+  return created.ok ? created.data?.id ?? "" : "";
+}
+
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (request.method !== "POST") return fail("save", 405);
@@ -371,6 +429,100 @@ Deno.serve(async (request) => {
       ]);
     }
     return json({ ok: true, credits: fresh.credits - transfer });
+  }
+
+  if (body.action === "buy-credits") {
+    const credits = Number(body.credits);
+    const amount = CREDIT_PACKS[credits];
+    if (!amount) return fail("credits");
+    const gateway = await loadGateway(admin);
+    if (!gateway?.document) return fail("unavailable", 503);
+    const { data: created, error } = await admin
+      .from("reseller_credit_payments")
+      .insert({ reseller_id: reseller.id, credits, amount_cents: amount, status: "pending" })
+      .select("id")
+      .single();
+    if (error || !created) return fail("save", 500);
+    const paymentId = created.id as string;
+    const cancel = () =>
+      admin.from("reseller_credit_payments").update({ status: "cancelled" }).eq("id", paymentId).eq("status", "pending");
+    const customerId = await pixCustomer(gateway);
+    if (!customerId) {
+      await cancel();
+      return fail("config", 500);
+    }
+    const charged = await asaas(gateway, "/payments", {
+      method: "POST",
+      body: JSON.stringify({
+        customer: customerId,
+        billingType: "PIX",
+        value: Number((amount / 100).toFixed(2)),
+        dueDate: dueDate(),
+        description: `Creditos Slim Play — ${credits}`,
+        externalReference: paymentId,
+      }),
+    });
+    const asaasPaymentId = charged.data?.id ?? "";
+    if (!charged.ok || !asaasPaymentId) {
+      await cancel();
+      return fail("save", 502);
+    }
+    const qr = await asaas(gateway, `/payments/${asaasPaymentId}/pixQrCode`);
+    const pixPayload = qr.data?.payload ?? "";
+    const pixQr = qr.data?.encodedImage ?? "";
+    const pixExpiresAt = qr.data?.expirationDate ?? null;
+    if (!qr.ok || !pixPayload) {
+      await asaas(gateway, `/payments/${asaasPaymentId}`, { method: "DELETE" });
+      await cancel();
+      return fail("save", 502);
+    }
+    const { error: updateError } = await admin
+      .from("reseller_credit_payments")
+      .update({
+        asaas_payment_id: asaasPaymentId,
+        asaas_customer_id: customerId,
+        pix_payload: pixPayload,
+        pix_qr: pixQr,
+        pix_expires_at: pixExpiresAt,
+      })
+      .eq("id", paymentId);
+    if (updateError) {
+      await asaas(gateway, `/payments/${asaasPaymentId}`, { method: "DELETE" });
+      await cancel();
+      return fail("save", 500);
+    }
+    return json({
+      ok: true,
+      id: paymentId,
+      credits,
+      amountCents: amount,
+      status: "pending",
+      pixPayload,
+      pixQr,
+      pixExpiresAt: pixExpiresAt ?? "",
+    });
+  }
+
+  if (body.action === "credit-status") {
+    const id = typeof body.id === "string" ? body.id : "";
+    if (!/^[0-9a-f-]{36}$/i.test(id)) return fail("save");
+    const { data } = await admin
+      .from("reseller_credit_payments")
+      .select("id, status, credits, amount_cents, pix_payload, pix_qr, pix_expires_at")
+      .eq("id", id)
+      .eq("reseller_id", reseller.id)
+      .maybeSingle();
+    if (!data) return fail("missing", 404);
+    return json({
+      ok: true,
+      id: data.id,
+      status: data.status,
+      credits: data.credits,
+      amountCents: data.amount_cents,
+      pixPayload: data.status === "pending" ? data.pix_payload ?? "" : "",
+      pixQr: data.status === "pending" ? data.pix_qr ?? "" : "",
+      pixExpiresAt: data.pix_expires_at ?? "",
+    });
   }
 
   return fail("save");

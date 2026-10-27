@@ -12,9 +12,11 @@ type ActivationResult = {
   status?: string;
   amountCents?: number;
   days?: number;
-  invoiceUrl?: string;
+  mac?: string;
   pixPayload?: string;
   pixQr?: string;
+  pixExpiresAt?: string;
+  history?: Array<{ id?: string; status?: string; amountCents?: number; createdAt?: string }>;
 };
 
 function config() {

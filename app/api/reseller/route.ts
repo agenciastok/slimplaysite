@@ -4,7 +4,7 @@ import { callReseller, resellerCookieName } from "@/lib/reseller-server";
 
 export const dynamic = "force-dynamic";
 
-const actions = new Set(["dashboard", "devices", "activate", "subs", "create-sub"]);
+const actions = new Set(["dashboard", "devices", "activate", "subs", "create-sub", "buy-credits", "credit-status"]);
 
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;

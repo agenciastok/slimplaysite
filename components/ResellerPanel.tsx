@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { useI18n } from "@/lib/i18n";
@@ -31,7 +31,8 @@ export function ResellerPanel({ initial }: { initial: ResellerDashboard }) {
   const [deviceQuery, setDeviceQuery] = useState("");
   const [subQuery, setSubQuery] = useState("");
   const [buyOpen, setBuyOpen] = useState(false);
-  const [buyNote, setBuyNote] = useState(false);
+  const [pix, setPix] = useState<{ id: string; amountCents: number; credits: number; pixPayload: string; pixQr: string; status: string } | null>(null);
+  const [copied, setCopied] = useState(false);
   const [activateOpen, setActivateOpen] = useState(false);
   const [mac, setMac] = useState("");
   const [comment, setComment] = useState("");
@@ -102,6 +103,48 @@ export function ResellerPanel({ initial }: { initial: ResellerDashboard }) {
     if (next === "subs") await loadSubs();
   }
 
+  async function buyPack(credits: number) {
+    if (busy) return;
+    setBusy(true);
+    setCopied(false);
+    const data = await call("buy-credits", { credits });
+    setBusy(false);
+    if (!data?.id) return;
+    setPix({
+      id: String(data.id),
+      amountCents: Number(data.amountCents ?? 0),
+      credits: Number(data.credits ?? credits),
+      pixPayload: String(data.pixPayload ?? ""),
+      pixQr: String(data.pixQr ?? ""),
+      status: String(data.status ?? "pending"),
+    });
+  }
+
+  useEffect(() => {
+    if (!pix || pix.status !== "pending") return;
+    const timer = window.setInterval(async () => {
+      const data = await call("credit-status", { id: pix.id });
+      if (!data?.status) return;
+      const status = String(data.status);
+      setPix((current) => (current ? { ...current, status, pixPayload: String(data.pixPayload ?? current.pixPayload), pixQr: String(data.pixQr ?? current.pixQr) } : current));
+      if (status === "paid") {
+        setNotice(copy.buyPaid);
+        await refreshDash();
+      }
+    }, 4000);
+    return () => window.clearInterval(timer);
+  }, [pix?.id, pix?.status]);
+
+  async function copyPix() {
+    if (!pix?.pixPayload) return;
+    try {
+      await navigator.clipboard.writeText(pix.pixPayload);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  }
+
   async function logout() {
     await fetch("/api/reseller/logout", { method: "POST" });
     router.replace("/revendedor");
@@ -157,7 +200,7 @@ export function ResellerPanel({ initial }: { initial: ResellerDashboard }) {
           </div>
           <p className="mt-2 text-2xl font-semibold text-white">{dash.credits}</p>
         </div>
-        <button type="button" onClick={() => { setBuyOpen(true); setBuyNote(false); setMenu(false); }} className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-accent text-sm font-semibold text-white hover:bg-accent-bright">
+        <button type="button" onClick={() => { setBuyOpen(true); setPix(null); setMenu(false); }} className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-accent text-sm font-semibold text-white hover:bg-accent-bright">
           <Icon><path d="M6 6h15l-1.5 9h-12z" /><path d="M6 6 5 3H2" /><circle cx="9" cy="20" r="1" /><circle cx="18" cy="20" r="1" /></Icon>
           {copy.buy}
         </button>
@@ -273,20 +316,40 @@ export function ResellerPanel({ initial }: { initial: ResellerDashboard }) {
       </section>
 
       {buyOpen ? (
-        <Modal title={copy.buyTitle} lead={copy.buyLead} onClose={() => setBuyOpen(false)} closeLabel={copy.close}>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {creditPacks.map((pack) => (
-              <article key={pack.credits} className="rounded-2xl border border-white/10 bg-[#101010] p-4 text-center">
-                <p className="text-lg font-semibold text-white">{copy.packCredits.replace("{count}", String(pack.credits))}</p>
-                <p className="mt-4 text-xs tracking-[0.14em] text-muted">{copy.priceLabel}</p>
-                <p className="mt-1 text-2xl font-semibold text-white">{money(pack.priceCents)}</p>
-                <button type="button" onClick={() => setBuyNote(true)} className="mt-4 inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-accent text-sm font-semibold text-white">
-                  {copy.buyAction}
-                </button>
-              </article>
-            ))}
-          </div>
-          {buyNote ? <p className="mt-4 text-sm text-accent-bright">{copy.buyLater}</p> : null}
+        <Modal title={copy.buyTitle} lead={copy.buyLead} onClose={() => { setBuyOpen(false); setPix(null); }} closeLabel={copy.close}>
+          {pix ? (
+            <div className="text-center">
+              <p className="text-3xl font-semibold text-white">{money(pix.amountCents)}</p>
+              <p className="mt-1 text-sm text-soft">{copy.packCredits.replace("{count}", String(pix.credits))}</p>
+              {pix.status === "paid" ? (
+                <p role="status" className="mt-4 text-sm text-soft">{copy.buyPaid}</p>
+              ) : (
+                <>
+                  {pix.pixQr ? (
+                    <img src={`data:image/png;base64,${pix.pixQr.replace(/^data:image\/[a-z+]+;base64,/i, "")}`} alt={copy.pixCode} className="mx-auto mt-4 h-52 w-52 rounded-2xl bg-white p-3" />
+                  ) : null}
+                  {pix.pixPayload ? <p className="mt-4 break-all rounded-xl border border-white/10 bg-black/40 px-3 py-3 text-center font-mono text-xs text-white">{pix.pixPayload}</p> : null}
+                  <button type="button" onClick={() => void copyPix()} className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-accent text-sm font-semibold text-white">
+                    {copied ? copy.copied : copy.copy}
+                  </button>
+                  <p className="mt-3 text-sm text-soft">{copy.waiting}</p>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-3">
+              {creditPacks.map((pack) => (
+                <article key={pack.credits} className="rounded-2xl border border-white/10 bg-[#101010] p-4 text-center">
+                  <p className="text-lg font-semibold text-white">{copy.packCredits.replace("{count}", String(pack.credits))}</p>
+                  <p className="mt-4 text-xs tracking-[0.14em] text-muted">{copy.priceLabel}</p>
+                  <p className="mt-1 text-2xl font-semibold text-white">{money(pack.priceCents)}</p>
+                  <button type="button" disabled={busy} onClick={() => void buyPack(pack.credits)} className="mt-4 inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-accent text-sm font-semibold text-white disabled:opacity-60">
+                    {copy.buyAction}
+                  </button>
+                </article>
+              ))}
+            </div>
+          )}
         </Modal>
       ) : null}
 
