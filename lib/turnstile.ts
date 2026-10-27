@@ -22,11 +22,26 @@ export async function verifyTurnstile(token: unknown, action: string, remoteIp: 
     const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      cache: "no-store",
       signal: AbortSignal.timeout(10_000),
       body: params,
     });
     if (!response.ok) return false;
-    const result = (await response.json()) as { success?: boolean; action?: string; hostname?: string };
+    const result = (await response.json()) as {
+      success?: boolean;
+      action?: string;
+      hostname?: string;
+      "error-codes"?: string[];
+    };
+    console.info(
+      JSON.stringify({
+        turnstile: true,
+        success: result.success === true,
+        action: result.action ?? "",
+        hostname: result.hostname ?? "",
+        errors: result["error-codes"] ?? [],
+      }),
+    );
     return result.success === true && result.action === action && expectedHostnames.has(result.hostname ?? "");
   } catch {
     return false;
