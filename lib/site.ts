@@ -1,7 +1,7 @@
 export const siteConfig = {
   name: "Slim Play",
   email: "contato@slimplay.app",
-  telegramUrl: "https://t.me/slimplay",
+  telegramUrl: "https://t.me/slimplayapp",
   year: 2026,
 } as const;
 
