@@ -553,7 +553,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
               "A licença libera o player no dispositivo indicado pelo endereço MAC. Ela não inclui lista, canal ou arquivo.",
               "A degustação, quando disponível, cobre os recursos de reprodução por 7 dias. Não é um catálogo.",
               "A licença paga segue o prazo do plano escolhido. O tempo novo soma-se ao que ainda estiver vigente no aparelho, a partir da confirmação do pagamento.",
-              "Quando o pagamento estiver ativo, PIX e cartão são processados pelo gateway. O número do cartão é digitado só lá. O Slim Play não o recebe.",
+              "O pagamento da licença é somente por Pix e é processado pelo gateway.",
             ],
           },
           {
@@ -609,7 +609,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
             paragraphs: [
               "Idioma e o registro de que você viu os avisos deste navegador ficam só neste aparelho.",
               "Para gerenciar listas, guardamos o MAC, a chave do dispositivo usada no login e os dados da lista que você enviar: nome, endereço M3U ou código, e, no Xtream, servidor, usuário e senha. Isso serve para o player abrir a sua lista.",
-              "Na ativação, o nome, o e-mail, o CPF e o MAC seguem para o gateway emitir a cobrança e ligar a licença ao aparelho. O Slim Play não guarda o CPF nem os dados do cartão. Guardamos o registro do pagamento: MAC, plano, valor, forma (PIX ou cartão), status e identificadores do gateway.",
+              "Na ativação, o nome, o e-mail, o CPF e o MAC seguem para o gateway emitir a cobrança e ligar a licença ao aparelho. O Slim Play não guarda o CPF. Guardamos o registro do pagamento: MAC, plano, valor, forma (Pix), status e identificadores do gateway.",
               "No cadastro de revendedor, guardamos nome, e-mail, telefone e a senha apenas como hash, além dos créditos e dos MAC que essa conta ativar.",
               "Mensagens enviadas ao e-mail de suporte são usadas para responder o seu pedido.",
             ],
@@ -626,7 +626,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
           {
             title: "Com quem compartilhamos",
             paragraphs: [
-              "O gateway de pagamento recebe nome, e-mail, CPF e o valor da cobrança para processar PIX ou cartão. O cartão é digitado somente no gateway.",
+              "O gateway de pagamento recebe nome, e-mail, CPF e o valor da cobrança para processar o Pix.",
               "A infraestrutura que guarda o banco e executa o site trata os dados em nosso nome, para hospedar o serviço. Esses prestadores podem manter servidores fora do Brasil.",
               "Podemos informar dados se uma autoridade competente exigir, nos limites da lei.",
             ],
@@ -1184,7 +1184,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
               "The license unlocks the player on the device identified by its MAC address. It does not include a list, channel, or file.",
               "The trial, when available, covers playback features for 7 days. It is not a catalog.",
               "A paid license follows the plan length you choose. New time is added to any time still left on the device, starting when payment is confirmed.",
-              "When payment is enabled, PIX and card are processed by the gateway. The card number is entered only there. Slim Play does not receive it.",
+              "The license is paid by Pix only, and the gateway processes that payment.",
             ],
           },
           {
@@ -1240,7 +1240,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
             paragraphs: [
               "Your language and the record that you saw the notices in this browser stay on this device only.",
               "To manage lists, we store the MAC, the device key used at login, and the list you submit: name, M3U address or code, and, for Xtream, server, username, and password. That is what lets the player open your list.",
-              "For activation, the name, email, CPF, and MAC go to the gateway to issue the charge and tie the license to the device. Slim Play does not store the CPF or the card data. We keep the payment record: MAC, plan, amount, method (PIX or card), status, and gateway identifiers.",
+              "For activation, the name, email, CPF, and MAC go to the gateway to issue the charge and tie the license to the device. Slim Play does not store the CPF. We keep the payment record: MAC, plan, amount, method (Pix), status, and gateway identifiers.",
               "Reseller signup stores the name, email, phone, and the password only as a hash, plus credits and the MACs that account activates.",
               "Messages sent to support are used to answer your request.",
             ],
@@ -1257,7 +1257,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
           {
             title: "Who we share it with",
             paragraphs: [
-              "The payment gateway receives the name, email, CPF, and charge amount to process PIX or card. The card is entered only at the gateway.",
+              "The payment gateway receives the name, email, CPF, and charge amount to process the Pix.",
               "The infrastructure that stores the database and runs the site handles data on our behalf, to host the service. Those providers may keep servers outside Brazil.",
               "We may disclose data if a competent authority requires it, within the limits of the law.",
             ],
