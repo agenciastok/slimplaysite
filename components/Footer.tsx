@@ -46,7 +46,13 @@ export function Footer() {
         </div>
         <div className="flex flex-col items-start text-left">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-white">
-            {t.footer.contactTitle}
+            <Link
+              href="/contato"
+              aria-current={pathname === "/contato" ? "page" : undefined}
+              className={cn("transition-colors hover:text-accent-bright", pathname === "/contato" && "text-accent-bright")}
+            >
+              {t.footer.contactTitle}
+            </Link>
           </h2>
           <a
             href={`mailto:${siteConfig.email}`}

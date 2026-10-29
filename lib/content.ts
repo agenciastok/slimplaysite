@@ -285,6 +285,25 @@ export type Dictionary = {
       string
     >;
   };
+  contact: {
+    kicker: string;
+    title: string;
+    lead: string;
+    emailLabel: string;
+    telegramLabel: string;
+    telegramText: string;
+    formTitle: string;
+    name: string;
+    email: string;
+    message: string;
+    messagePlaceholder: string;
+    captcha: string;
+    submit: string;
+    sending: string;
+    successTitle: string;
+    successText: string;
+    errors: Record<"name" | "email" | "message" | "captcha" | "save", string>;
+  };
   notFound: {
     title: string;
     text: string;
@@ -611,7 +630,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
               "Para gerenciar listas, guardamos o MAC, a chave do dispositivo usada no login e os dados da lista que você enviar: nome, endereço M3U ou código, e, no Xtream, servidor, usuário e senha. Isso serve para o player abrir a sua lista.",
               "Na ativação, o nome, o e-mail, o CPF e o MAC seguem para o gateway emitir a cobrança e ligar a licença ao aparelho. O Slim Play não guarda o CPF. Guardamos o registro do pagamento: MAC, plano, valor, forma (Pix), status e identificadores do gateway.",
               "No cadastro de revendedor, guardamos nome, e-mail, telefone e a senha apenas como hash, além dos créditos e dos MAC que essa conta ativar.",
-              "Mensagens enviadas ao e-mail de suporte são usadas para responder o seu pedido.",
+              "Mensagens do formulário de contato e do e-mail de suporte guardam o nome, o e-mail e o texto, e são usadas para responder o seu pedido.",
             ],
           },
           {
@@ -637,6 +656,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
               "A sessão de listas e a sessão de revendedor duram 12 horas.",
               "Idioma e avisos locais permanecem até você limpar os dados deste navegador.",
               "A conta de revendedor e as listas permanecem enquanto a conta ou a lista existir. Você pode pedir a exclusão pelo e-mail de suporte.",
+              "Mensagens do formulário de contato ficam até a resposta e o acompanhamento do pedido.",
               "Registros de pagamento permanecem pelo tempo necessário para a licença, o atendimento do arrependimento e as obrigações legais.",
             ],
           },
@@ -916,6 +936,31 @@ export const dictionaries: Record<Locale, Dictionary> = {
         save: "Não foi possível concluir. Tente novamente.",
         config: "O painel está indisponível no momento.",
         unavailable: "O Pix ainda não está disponível.",
+      },
+    },
+    contact: {
+      kicker: "Contato",
+      title: "Fale com o Slim Play",
+      lead: "Dúvidas sobre a licença, o aplicativo ou a conta. O Slim Play não dá suporte a listas, canais ou conteúdo de terceiros.",
+      emailLabel: "E-mail",
+      telegramLabel: "Telegram",
+      telegramText: "Abrir conversa",
+      formTitle: "Envie uma mensagem",
+      name: "Nome",
+      email: "E-mail",
+      message: "Mensagem",
+      messagePlaceholder: "Como podemos ajudar?",
+      captcha: "Confirme que você é humano",
+      submit: "Enviar mensagem",
+      sending: "Enviando...",
+      successTitle: "Mensagem enviada",
+      successText: "Recebemos o seu pedido e vamos responder no e-mail informado.",
+      errors: {
+        name: "Informe o seu nome.",
+        email: "Informe um e-mail válido.",
+        message: "Escreva a mensagem com pelo menos 10 caracteres.",
+        captcha: "Confirme que você é humano.",
+        save: "Não foi possível enviar agora. Use o e-mail ou o Telegram.",
       },
     },
     notFound: {
@@ -1242,7 +1287,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
               "To manage lists, we store the MAC, the device key used at login, and the list you submit: name, M3U address or code, and, for Xtream, server, username, and password. That is what lets the player open your list.",
               "For activation, the name, email, CPF, and MAC go to the gateway to issue the charge and tie the license to the device. Slim Play does not store the CPF. We keep the payment record: MAC, plan, amount, method (Pix), status, and gateway identifiers.",
               "Reseller signup stores the name, email, phone, and the password only as a hash, plus credits and the MACs that account activates.",
-              "Messages sent to support are used to answer your request.",
+              "Contact form and support email messages store the name, email, and text, and are used to answer your request.",
             ],
           },
           {
@@ -1268,6 +1313,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
               "The list session and the reseller session last 12 hours.",
               "Language and local notices stay until you clear this browser's data.",
               "The reseller account and the lists remain while the account or the list exists. You can ask for deletion at the support email.",
+              "Contact form messages stay until we answer and follow up on the request.",
               "Payment records remain for as long as the license, the withdrawal period, and legal duties require.",
             ],
           },
@@ -1547,6 +1593,31 @@ export const dictionaries: Record<Locale, Dictionary> = {
         save: "Could not finish. Try again.",
         config: "The panel is unavailable right now.",
         unavailable: "Pix is not available yet.",
+      },
+    },
+    contact: {
+      kicker: "Contact",
+      title: "Talk to Slim Play",
+      lead: "Questions about the license, the app, or the account. Slim Play does not support third-party lists, channels, or content.",
+      emailLabel: "Email",
+      telegramLabel: "Telegram",
+      telegramText: "Open chat",
+      formTitle: "Send a message",
+      name: "Name",
+      email: "Email",
+      message: "Message",
+      messagePlaceholder: "How can we help?",
+      captcha: "Confirm that you are human",
+      submit: "Send message",
+      sending: "Sending...",
+      successTitle: "Message sent",
+      successText: "We received your request and will reply to the email you entered.",
+      errors: {
+        name: "Enter your name.",
+        email: "Enter a valid email.",
+        message: "Write a message of at least 10 characters.",
+        captcha: "Confirm that you are human.",
+        save: "Could not send right now. Use email or Telegram.",
       },
     },
     notFound: {
