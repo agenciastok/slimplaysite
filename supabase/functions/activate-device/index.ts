@@ -10,7 +10,6 @@ const ANNUAL_CODE = "365";
 const ANNUAL_DAYS = 365;
 const ANNUAL_CENTS = 1200;
 const YEAR_MS = 365 * 24 * 60 * 60 * 1000;
-const REVIEW_VOUCHER = "968425";
 
 type Gateway = { key: string; sandbox: boolean; document: string };
 
@@ -23,15 +22,6 @@ function json(body: unknown, status = 200) {
 
 function fail(error: string, status = 400) {
   return json({ error }, status);
-}
-
-function safeEqual(left: string, right: string) {
-  if (left.length !== right.length) return false;
-  let diff = 0;
-  for (let index = 0; index < left.length; index += 1) {
-    diff |= left.charCodeAt(index) ^ right.charCodeAt(index);
-  }
-  return diff === 0;
 }
 
 function asaasBase(sandbox: boolean) {
@@ -173,7 +163,16 @@ Deno.serve(async (request) => {
     const mac = normalizeMac(typeof body.mac === "string" ? body.mac : "");
     if (!mac) return fail("mac");
     const code = typeof body.code === "string" ? body.code.replace(/\D/g, "") : "";
-    if (!safeEqual(code, REVIEW_VOUCHER)) return fail("voucher");
+    if (!/^\d{6}$/.test(code)) return fail("voucher");
+    const { data: voucher, error: voucherError } = await admin
+      .from("activation_vouchers")
+      .select("id")
+      .eq("code", code)
+      .eq("purpose", "app_release")
+      .eq("active", true)
+      .maybeSingle();
+    if (voucherError) return fail("save", 500);
+    if (!voucher) return fail("voucher");
     const { data: device, error: deviceError } = await admin
       .from("device_macs")
       .select("is_activated, expires_at")
@@ -190,6 +189,7 @@ Deno.serve(async (request) => {
       if (insertError) return fail("save", 500);
       await admin.from("voucher_activations").insert({
         mac_address: mac,
+        voucher_id: voucher.id,
         previous_expires_at: null,
         granted_expires_at: granted,
       });
@@ -215,6 +215,7 @@ Deno.serve(async (request) => {
     if (updateError) return fail("save", 500);
     await admin.from("voucher_activations").insert({
       mac_address: mac,
+      voucher_id: voucher.id,
       previous_expires_at: current ? current.toISOString() : null,
       granted_expires_at: granted,
     });

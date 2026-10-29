@@ -273,7 +273,7 @@ export function ActivationCheckout() {
                   inputMode="numeric"
                   autoComplete="off"
                   maxLength={6}
-                  className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm tracking-[0.3em] text-white placeholder:tracking-normal placeholder:text-muted focus:border-white/40"
+                  className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-muted focus:border-white/40"
                   required
                 />
               </label>
