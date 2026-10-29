@@ -30,11 +30,14 @@ export function ActivationCheckout() {
   const page = t.pages.activation;
   const [plans, setPlans] = useState<ActivationPlan[]>(previewPlans);
   const [ready, setReady] = useState(false);
+  const [method, setMethod] = useState<"pix" | "voucher">("pix");
   const [mac, setMac] = useState("");
+  const [voucher, setVoucher] = useState("");
   const [token, setToken] = useState("");
   const [resetKey, setResetKey] = useState(0);
   const [error, setError] = useState<ActivationError | null>(null);
   const [saving, setSaving] = useState(false);
+  const [activatedMac, setActivatedMac] = useState("");
   const [charge, setCharge] = useState<ActivationCharge | null>(null);
   const [copied, setCopied] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -88,9 +91,47 @@ export function ActivationCheckout() {
     };
   }, [charge?.id, charge?.status]);
 
+  function choose(next: "pix" | "voucher") {
+    setMethod(next);
+    setError(null);
+    setToken("");
+    setResetKey((value) => value + 1);
+  }
+
+  async function onVoucher() {
+    setError(null);
+    setSaving(true);
+    try {
+      const response = await fetch("/api/activation/voucher", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mac, code: voucher, token }),
+      });
+      const data = (await response.json().catch(() => null)) as { ok?: boolean; mac?: string; error?: ActivationError } | null;
+      if (!response.ok || !data?.ok) {
+        setError(data?.error ?? "save");
+        setToken("");
+        setResetKey((value) => value + 1);
+        return;
+      }
+      setActivatedMac(data.mac || mac.trim().toUpperCase());
+    } catch {
+      setError("save");
+      setToken("");
+      setResetKey((value) => value + 1);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!ready || saving) return;
+    if (saving) return;
+    if (method === "voucher") {
+      await onVoucher();
+      return;
+    }
+    if (!ready) return;
     setError(null);
     setSaving(true);
     try {
@@ -147,7 +188,12 @@ export function ActivationCheckout() {
           ))}
         </ol>
 
-        {charge?.status === "paid" ? (
+        {activatedMac ? (
+          <p role="status" className="mt-8 rounded-2xl border border-white/10 bg-card px-5 py-4 text-soft">
+            {copy.voucherDone}
+            <span className="mt-1 block font-semibold text-white">{activatedMac}</span>
+          </p>
+        ) : charge?.status === "paid" ? (
           <p role="status" className="mt-8 rounded-2xl border border-white/10 bg-card px-5 py-4 text-soft">{copy.paid}</p>
         ) : charge ? (
           <section className="mx-auto mt-8 max-w-md rounded-3xl border border-white/10 bg-[#101010] px-5 py-8 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:px-8">
@@ -210,8 +256,28 @@ export function ActivationCheckout() {
           </section>
         ) : (
           <form onSubmit={onSubmit} className="mx-auto mt-8 max-w-md rounded-3xl border border-white/10 bg-[#161616]/80 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-7">
-            <p className="text-sm leading-relaxed text-muted">{copy.notice}</p>
-            <p className="mt-4 text-3xl font-semibold text-white">{money(price, locale)}</p>
+            {method === "voucher" ? (
+              <p className="text-sm leading-relaxed text-muted">{copy.voucherNote}</p>
+            ) : (
+              <>
+                <p className="text-sm leading-relaxed text-muted">{copy.notice}</p>
+                <p className="mt-4 text-3xl font-semibold text-white">{money(price, locale)}</p>
+              </>
+            )}
+            {method === "voucher" ? (
+              <label className="mt-6 block">
+                <span className="mb-2 block text-sm text-soft">{copy.voucher}</span>
+                <input
+                  value={voucher}
+                  onChange={(event) => setVoucher(event.target.value.replace(/\D/g, "").slice(0, 6))}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  maxLength={6}
+                  className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm tracking-[0.3em] text-white placeholder:tracking-normal placeholder:text-muted focus:border-white/40"
+                  required
+                />
+              </label>
+            ) : null}
             <label className="mt-6 block">
               <span className="mb-2 block text-sm text-soft">{copy.mac}</span>
               <MacInput
@@ -219,26 +285,33 @@ export function ActivationCheckout() {
                 onChange={setMac}
                 placeholder="AA:BB:CC:DD:EE:FF"
                 autoComplete="off"
-                disabled={!ready}
+                disabled={method === "pix" && !ready}
                 className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-muted focus:border-white/40 disabled:cursor-not-allowed disabled:opacity-60"
                 required
               />
             </label>
-            {ready ? (
+            {method === "voucher" || ready ? (
               <div className="mt-6 rounded-2xl border border-white/10 bg-black/30 p-4">
                 <p className="text-sm text-soft">{t.uploadForm.captcha}</p>
                 <div className="mt-4">
-                  <TurnstileField action="activation" onToken={setToken} resetKey={resetKey} />
+                  <TurnstileField action={method === "voucher" ? "voucher" : "activation"} onToken={setToken} resetKey={resetKey} />
                 </div>
               </div>
             ) : null}
             {error ? <p role="alert" className="mt-4 text-sm text-accent-bright">{copy.errors[error] ?? copy.errors.save}</p> : null}
             <button
               type="submit"
-              disabled={!ready || saving || !token}
+              disabled={method === "pix" ? !ready || saving || !token : saving || !token || voucher.length !== 6}
               className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-accent px-6 py-3 text-[13px] font-semibold uppercase tracking-[0.14em] text-white shadow-[0_10px_30px_rgba(229,9,20,0.35)] hover:bg-accent-bright disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {saving ? copy.paying : copy.pay}
+              {method === "voucher" ? (saving ? copy.voucherWorking : copy.voucherAction) : saving ? copy.paying : copy.pay}
+            </button>
+            <button
+              type="button"
+              onClick={() => choose(method === "voucher" ? "pix" : "voucher")}
+              className="mt-4 w-full text-sm text-soft underline decoration-white/20 underline-offset-4 transition-colors hover:text-white"
+            >
+              {method === "voucher" ? copy.voucherBack : copy.voucherOption}
             </button>
           </form>
         )}

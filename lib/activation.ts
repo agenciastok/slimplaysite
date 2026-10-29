@@ -9,6 +9,7 @@ export type ActivationBilling = "pix";
 export type ActivationError =
   | "mac"
   | "unknown"
+  | "voucher"
   | "captcha"
   | "save"
   | "unavailable"

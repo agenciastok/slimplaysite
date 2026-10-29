@@ -159,7 +159,14 @@ export type Dictionary = {
     supportLead: string;
     attention: string;
     statuses: Record<"pending" | "paid" | "refunded" | "cancelled", string>;
-    errors: Record<"mac" | "unknown" | "captcha" | "save" | "unavailable" | "config", string>;
+    voucherOption: string;
+    voucherBack: string;
+    voucherNote: string;
+    voucher: string;
+    voucherAction: string;
+    voucherWorking: string;
+    voucherDone: string;
+    errors: Record<"mac" | "unknown" | "voucher" | "captcha" | "save" | "unavailable" | "config", string>;
   };
   resellerPanel: {
     loginTitle: string;
@@ -836,9 +843,17 @@ export const dictionaries: Record<Locale, Dictionary> = {
       supportLead: "Fale diretamente com a equipe Slim Play pelo Telegram.",
       attention: "A ativação libera somente o aplicativo e não inclui conteúdo. Suporte para canais, filmes e séries deve ser feito diretamente com o seu fornecedor.",
       statuses: { pending: "Pendente", paid: "Pago", refunded: "Estornado", cancelled: "Cancelado" },
+      voucherOption: "Ativação por voucher",
+      voucherBack: "Voltar para o Pix",
+      voucherNote: "Para a equipe de análise das lojas. Informe o voucher e o MAC exibido no aplicativo. Não há cobrança, e a licença vale 1 ano.",
+      voucher: "Voucher",
+      voucherAction: "Ativar com voucher",
+      voucherWorking: "Ativando...",
+      voucherDone: "Voucher aceito. O player foi ativado neste dispositivo por 1 ano.",
       errors: {
         mac: "Informe o MAC do dispositivo no formato AA:BB:CC:DD:EE:FF.",
         unknown: "Este MAC não está cadastrado. Abra o aplicativo nesse dispositivo e tente de novo.",
+        voucher: "Voucher incorreto.",
         captcha: "O desafio de segurança não confere. Tente de novo.",
         save: "Não foi possível gerar a cobrança. Tente novamente.",
         unavailable: "O pagamento ainda não está disponível.",
@@ -1493,9 +1508,17 @@ export const dictionaries: Record<Locale, Dictionary> = {
       supportLead: "Talk to the Slim Play team on Telegram.",
       attention: "Activation unlocks the app only and does not include content. Support for channels, movies, and series goes to your provider.",
       statuses: { pending: "Pending", paid: "Paid", refunded: "Refunded", cancelled: "Cancelled" },
+      voucherOption: "Voucher activation",
+      voucherBack: "Back to Pix",
+      voucherNote: "For store review teams. Enter the voucher and the MAC shown in the app. There is no charge, and the license lasts 1 year.",
+      voucher: "Voucher",
+      voucherAction: "Activate with voucher",
+      voucherWorking: "Activating...",
+      voucherDone: "Voucher accepted. The player is activated on this device for 1 year.",
       errors: {
         mac: "Enter the device MAC as AA:BB:CC:DD:EE:FF.",
         unknown: "This MAC is not registered. Open the app on that device and try again.",
+        voucher: "Incorrect voucher.",
         captcha: "The security challenge does not match. Try again.",
         save: "The charge could not be created. Try again.",
         unavailable: "Payment is not available yet.",

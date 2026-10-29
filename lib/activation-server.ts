@@ -13,6 +13,7 @@ type ActivationResult = {
   amountCents?: number;
   days?: number;
   mac?: string;
+  expiresAt?: string;
   pixPayload?: string;
   pixQr?: string;
   pixExpiresAt?: string;

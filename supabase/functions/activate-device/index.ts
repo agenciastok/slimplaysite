@@ -9,6 +9,8 @@ const corsHeaders = {
 const ANNUAL_CODE = "365";
 const ANNUAL_DAYS = 365;
 const ANNUAL_CENTS = 1200;
+const YEAR_MS = 365 * 24 * 60 * 60 * 1000;
+const REVIEW_VOUCHER = "968425";
 
 type Gateway = { key: string; sandbox: boolean; document: string };
 
@@ -21,6 +23,15 @@ function json(body: unknown, status = 200) {
 
 function fail(error: string, status = 400) {
   return json({ error }, status);
+}
+
+function safeEqual(left: string, right: string) {
+  if (left.length !== right.length) return false;
+  let diff = 0;
+  for (let index = 0; index < left.length; index += 1) {
+    diff |= left.charCodeAt(index) ^ right.charCodeAt(index);
+  }
+  return diff === 0;
 }
 
 function asaasBase(sandbox: boolean) {
@@ -156,6 +167,58 @@ Deno.serve(async (request) => {
         createdAt: item.created_at,
       })),
     });
+  }
+
+  if (action === "voucher") {
+    const mac = normalizeMac(typeof body.mac === "string" ? body.mac : "");
+    if (!mac) return fail("mac");
+    const code = typeof body.code === "string" ? body.code.replace(/\D/g, "") : "";
+    if (!safeEqual(code, REVIEW_VOUCHER)) return fail("voucher");
+    const { data: device, error: deviceError } = await admin
+      .from("device_macs")
+      .select("is_activated, expires_at")
+      .eq("mac_address", mac)
+      .maybeSingle();
+    if (deviceError) return fail("save", 500);
+    if (!device) {
+      const granted = new Date(Date.now() + YEAR_MS).toISOString();
+      const { error: insertError } = await admin.from("device_macs").insert({
+        mac_address: mac,
+        is_activated: true,
+        expires_at: granted,
+      });
+      if (insertError) return fail("save", 500);
+      await admin.from("voucher_activations").insert({
+        mac_address: mac,
+        previous_expires_at: null,
+        granted_expires_at: granted,
+      });
+      return json({ ok: true, mac, expiresAt: granted });
+    }
+
+    const current = device.expires_at ? new Date(device.expires_at) : null;
+    const remaining = current ? current.getTime() - Date.now() : 0;
+    if (remaining >= 300 * 24 * 60 * 60 * 1000) {
+      if (device.is_activated !== true) {
+        const { error: activateError } = await admin.from("device_macs").update({ is_activated: true }).eq("mac_address", mac);
+        if (activateError) return fail("save", 500);
+      }
+      return json({ ok: true, mac, expiresAt: current?.toISOString() ?? "" });
+    }
+
+    const base = current && current.getTime() > Date.now() ? current : new Date();
+    const granted = new Date(base.getTime() + YEAR_MS).toISOString();
+    const { error: updateError } = await admin
+      .from("device_macs")
+      .update({ is_activated: true, expires_at: granted })
+      .eq("mac_address", mac);
+    if (updateError) return fail("save", 500);
+    await admin.from("voucher_activations").insert({
+      mac_address: mac,
+      previous_expires_at: current ? current.toISOString() : null,
+      granted_expires_at: granted,
+    });
+    return json({ ok: true, mac, expiresAt: granted });
   }
 
   if (action !== "checkout") return fail("save");
